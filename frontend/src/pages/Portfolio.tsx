@@ -1,0 +1,155 @@
+import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
+import { useUIStore } from '../store/uiStore';
+import { usePortfolio, usePortfolioStatus, useConnectUpbit } from '../hooks/usePortfolio';
+import PortfolioSummary from '../components/portfolio/PortfolioSummary';
+import HoldingsList from '../components/portfolio/HoldingsList';
+import Modal from '../components/common/Modal';
+import Loading from '../components/common/Loading';
+
+export default function Portfolio() {
+  const { isAuthenticated } = useAuthStore();
+  const { isUpbitConnectModalOpen, openUpbitConnectModal, closeUpbitConnectModal } = useUIStore();
+  const { data: status, isLoading: isStatusLoading } = usePortfolioStatus();
+  const { data: portfolio, isLoading: isPortfolioLoading, error } = usePortfolio();
+  const connectMutation = useConnectUpbit();
+
+  const [accessKey, setAccessKey] = useState('');
+  const [secretKey, setSecretKey] = useState('');
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  const handleConnect = (e: React.FormEvent) => {
+    e.preventDefault();
+    connectMutation.mutate({ accessKey, secretKey });
+  };
+
+  if (isStatusLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loading size="lg" />
+      </div>
+    );
+  }
+
+  if (!status?.isConnected) {
+    return (
+      <div className="max-w-md mx-auto mt-12">
+        <div className="bg-white rounded-lg shadow p-6 text-center">
+          <h2 className="text-xl font-semibold mb-4">업비트 연동 필요</h2>
+          <p className="text-gray-600 mb-6">
+            포트폴리오를 확인하려면 업비트 API를 연동해야 합니다.
+          </p>
+          <button
+            onClick={openUpbitConnectModal}
+            className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            업비트 연동하기
+          </button>
+        </div>
+
+        <Modal
+          isOpen={isUpbitConnectModalOpen}
+          onClose={closeUpbitConnectModal}
+          title="업비트 API 연동"
+        >
+          <form onSubmit={handleConnect} className="space-y-4">
+            <p className="text-sm text-gray-600 mb-4">
+              업비트에서 발급받은 API 키를 입력해주세요.
+              <br />
+              <a
+                href="https://upbit.com/mypage/open_api_management"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-600 hover:underline"
+              >
+                API 키 발급받기
+              </a>
+            </p>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Access Key
+              </label>
+              <input
+                type="text"
+                value={accessKey}
+                onChange={(e) => setAccessKey(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Secret Key
+              </label>
+              <input
+                type="password"
+                value={secretKey}
+                onChange={(e) => setSecretKey(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                required
+              />
+            </div>
+
+            {connectMutation.error && (
+              <p className="text-sm text-red-600">
+                연동에 실패했습니다. API 키를 확인해주세요.
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={connectMutation.isPending}
+              className="w-full py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+            >
+              {connectMutation.isPending ? '연동 중...' : '연동하기'}
+            </button>
+          </form>
+        </Modal>
+      </div>
+    );
+  }
+
+  if (isPortfolioLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loading size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-red-600">포트폴리오를 불러오는데 실패했습니다.</p>
+      </div>
+    );
+  }
+
+  if (!portfolio) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">내 포트폴리오</h1>
+      </div>
+
+      <PortfolioSummary portfolio={portfolio} />
+
+      {portfolio.holdings.length > 0 ? (
+        <HoldingsList holdings={portfolio.holdings} />
+      ) : (
+        <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+          보유한 코인이 없습니다.
+        </div>
+      )}
+    </div>
+  );
+}

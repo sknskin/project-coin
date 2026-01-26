@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  nickname      String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  upbitCredential UpbitCredential?
+  refreshTokens   RefreshToken[]
+  watchlist       Watchlist[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String   @map("user_id")
+  expiresAt   DateTime @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model UpbitCredential {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  accessKeyEnc    String   @map("access_key_enc")
+  secretKeyEnc    String   @map("secret_key_enc")
+  isValid         Boolean  @default(true) @map("is_valid")
+  lastSyncAt      DateTime? @map("last_sync_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("upbit_credentials")
+}
+
+model Watchlist {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  marketCode  String   @map("market_code")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, marketCode])
+  @@index([userId])
+  @@map("watchlist")
+}
+
+model Market {
+  id            String   @id @default(uuid())
+  marketCode    String   @unique @map("market_code")
+  koreanName    String   @map("korean_name")
+  englishName   String   @map("english_name")
+  marketWarning String?  @map("market_warning")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("markets")
+}
+
+model PortfolioSnapshot {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  totalBalance    Decimal  @map("total_balance") @db.Decimal(20, 8)
+  totalBuyPrice   Decimal  @map("total_buy_price") @db.Decimal(20, 8)
+  totalEvalPrice  Decimal  @map("total_eval_price") @db.Decimal(20, 8)
+  profitLoss      Decimal  @map("profit_loss") @db.Decimal(20, 8)
+  profitLossRate  Decimal  @map("profit_loss_rate") @db.Decimal(10, 4)
+  snapshotAt      DateTime @default(now()) @map("snapshot_at")
+
+  holdings        HoldingSnapshot[]
+
+  @@index([userId, snapshotAt])
+  @@map("portfolio_snapshots")
+}
+
+model HoldingSnapshot {
+  id                  String   @id @default(uuid())
+  portfolioSnapshotId String   @map("portfolio_snapshot_id")
+  marketCode          String   @map("market_code")
+  currency            String
+  balance             Decimal  @db.Decimal(20, 8)
+  avgBuyPrice         Decimal  @map("avg_buy_price") @db.Decimal(20, 8)
+  currentPrice        Decimal  @map("current_price") @db.Decimal(20, 8)
+  evalAmount          Decimal  @map("eval_amount") @db.Decimal(20, 8)
+  profitLoss          Decimal  @map("profit_loss") @db.Decimal(20, 8)
+  profitLossRate      Decimal  @map("profit_loss_rate") @db.Decimal(10, 4)
+
+  portfolioSnapshot   PortfolioSnapshot @relation(fields: [portfolioSnapshotId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioSnapshotId])
+  @@map("holding_snapshots")
+}
