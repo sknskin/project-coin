@@ -128,10 +128,12 @@
     "all": "전체",
     "back": "뒤로",
     "prev": "이전",
-    "next": "다음"
+    "next": "다음",
+    "viewPerPage": "{{count}}개씩 보기"
   },
   "menu": {
-    "coinInfo": "코인정보",
+    "coinInfo": "코인뉴스",
+    "coinNews": "코인 뉴스",
     "mypage": "마이페이지"
   },
   "roles": {

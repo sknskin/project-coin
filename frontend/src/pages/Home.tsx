@@ -10,7 +10,7 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div>
       {/* 프로젝트 헤더 */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -128,9 +128,10 @@ export default function Home() {
           </svg>
           github.com/sknskin/project_coin
         </a>
-        <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">
+        {/* 라이선스 관련 내용 주석 처리 */}
+        {/* <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">
           {t('home.license')}
-        </p>
+        </p> */}
       </div>
     </div>
   );

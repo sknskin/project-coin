@@ -60,9 +60,25 @@
   color: var(--text-primary);
 }
 
-.user-count {
+.table-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 16px;
+}
+
+.user-count {
   color: var(--text-secondary);
+}
+
+.page-size-select {
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
 }
 
 .user-table-wrapper {
@@ -88,6 +104,32 @@
   font-weight: 500;
   color: var(--text-secondary);
   font-size: 14px;
+  white-space: nowrap;
+}
+
+.sortable-th {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.sortable-th:hover {
+  background: var(--hover-bg);
+}
+
+.sort-icon {
+  margin-left: 4px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.sort-icon.neutral {
+  color: var(--text-muted, #999);
+  opacity: 0.5;
+}
+
+.sort-icon.active {
+  color: var(--primary-color);
 }
 
 .user-table td {
@@ -186,6 +228,23 @@
   text-align: center;
   padding: 40px;
   color: var(--text-secondary);
+}
+
+.member-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.member-pagination .pagination-info {
+  color: var(--text-secondary);
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 14px;
 }
 
 @media (max-width: 768px) {

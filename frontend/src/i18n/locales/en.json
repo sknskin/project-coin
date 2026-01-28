@@ -128,10 +128,12 @@
     "all": "All",
     "back": "Back",
     "prev": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "viewPerPage": "Show {{count}}"
   },
   "menu": {
-    "coinInfo": "Coin Info",
+    "coinInfo": "Coin News",
+    "coinNews": "Coin News",
     "mypage": "My Page"
   },
   "roles": {

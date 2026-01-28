@@ -227,7 +227,10 @@ export default function AuthModal() {
               type="text"
               id="emailOrUsername"
               value={emailOrUsername}
-              onChange={(e) => setEmailOrUsername(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^a-zA-Z0-9@._\-+]/g, '');
+                setEmailOrUsername(val);
+              }}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               required
               autoComplete="username"
@@ -271,7 +274,7 @@ export default function AuthModal() {
           </p>
         </form>
       ) : (
-        <form onSubmit={handleRegisterSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+        <form onSubmit={handleRegisterSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto overflow-x-hidden pr-1">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {t('auth.email')} <span className="text-red-500">*</span>

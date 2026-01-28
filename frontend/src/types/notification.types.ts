@@ -15,6 +15,8 @@ export interface Notification {
     marketCode?: string;
     conversationId?: string;
     messageId?: string;
+    userId?: string;
+    type?: string;
     [key: string]: unknown;
   };
   isRead: boolean;

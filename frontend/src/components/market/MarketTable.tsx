@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMarketStore } from '../../store/marketStore';
@@ -9,42 +9,147 @@ interface MarketTableProps {
   markets: Market[];
 }
 
+type SortKey = 'name' | 'price' | 'change' | 'volume';
+type SortDirection = 'asc' | 'desc' | 'none';
+
 export default function MarketTable({ markets }: MarketTableProps) {
   const { t, i18n } = useTranslation();
   const tickers = useMarketStore((state) => state.tickers);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('none');
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      // 같은 컬럼 클릭: none -> asc -> desc -> none
+      if (sortDirection === 'none') {
+        setSortDirection('asc');
+      } else if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else {
+        setSortDirection('none');
+        setSortKey(null);
+      }
+    } else {
+      // 다른 컬럼 클릭: asc부터 시작
+      setSortKey(key);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (key: SortKey) => {
+    if (sortKey !== key || sortDirection === 'none') {
+      return (
+        <span className="ml-1 text-gray-400">
+          <svg className="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+          </svg>
+        </span>
+      );
+    }
+    if (sortDirection === 'asc') {
+      return (
+        <span className="ml-1 text-primary-500">
+          <svg className="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+          </svg>
+        </span>
+      );
+    }
+    return (
+      <span className="ml-1 text-primary-500">
+        <svg className="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </span>
+    );
+  };
 
   const sortedMarkets = useMemo(() => {
-    return [...markets].sort((a, b) => {
-      const tickerA = tickers.get(a.market);
-      const tickerB = tickers.get(b.market);
-      const volumeA = tickerA?.accTradePrice24h || 0;
-      const volumeB = tickerB?.accTradePrice24h || 0;
-      return volumeB - volumeA;
+    const marketsWithTickers = markets.map((market) => ({
+      market,
+      ticker: tickers.get(market.market),
+    }));
+
+    // 정렬 없음 - 기본 거래대금 순
+    if (!sortKey || sortDirection === 'none') {
+      return [...marketsWithTickers].sort((a, b) => {
+        const volumeA = a.ticker?.accTradePrice24h || 0;
+        const volumeB = b.ticker?.accTradePrice24h || 0;
+        return volumeB - volumeA;
+      });
+    }
+
+    return [...marketsWithTickers].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortKey) {
+        case 'name': {
+          const nameA = i18n.language === 'ko' ? a.market.korean_name : a.market.english_name;
+          const nameB = i18n.language === 'ko' ? b.market.korean_name : b.market.english_name;
+          comparison = nameA.localeCompare(nameB, i18n.language);
+          break;
+        }
+        case 'price': {
+          const priceA = a.ticker?.tradePrice || 0;
+          const priceB = b.ticker?.tradePrice || 0;
+          comparison = priceA - priceB;
+          break;
+        }
+        case 'change': {
+          const changeA = a.ticker?.signedChangeRate || 0;
+          const changeB = b.ticker?.signedChangeRate || 0;
+          comparison = changeA - changeB;
+          break;
+        }
+        case 'volume': {
+          const volumeA = a.ticker?.accTradePrice24h || 0;
+          const volumeB = b.ticker?.accTradePrice24h || 0;
+          comparison = volumeA - volumeB;
+          break;
+        }
+      }
+
+      return sortDirection === 'desc' ? -comparison : comparison;
     });
-  }, [markets, tickers]);
+  }, [markets, tickers, sortKey, sortDirection, i18n.language]);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
       <table className="w-full">
         <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th
+              className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors select-none"
+              onClick={() => handleSort('name')}
+            >
               {t('market.coin')}
+              {getSortIcon('name')}
             </th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th
+              className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors select-none"
+              onClick={() => handleSort('price')}
+            >
               {t('market.currentPrice')}
+              {getSortIcon('price')}
             </th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th
+              className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors select-none"
+              onClick={() => handleSort('change')}
+            >
               {t('market.change')}
+              {getSortIcon('change')}
             </th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th
+              className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors select-none"
+              onClick={() => handleSort('volume')}
+            >
               {t('market.volume')}
+              {getSortIcon('volume')}
             </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-          {sortedMarkets.map((market) => {
-            const ticker = tickers.get(market.market);
+          {sortedMarkets.map(({ market, ticker }) => {
             const change = ticker?.change || 'EVEN';
             const changeColor = getChangeColor(change);
 

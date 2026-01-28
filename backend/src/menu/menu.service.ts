@@ -63,8 +63,8 @@ export class MenuService implements OnModuleInit {
         requiredRole: null,
       },
       {
-        name: '코인정보',
-        nameEn: 'Coin Info',
+        name: '코인뉴스',
+        nameEn: 'Coin News',
         path: '/coin-info',
         depth: 1,
         order: 2,

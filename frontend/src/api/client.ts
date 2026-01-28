@@ -52,7 +52,11 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // 로그인/회원가입 요청은 토큰 갱신 시도하지 않음
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
+      originalRequest.url?.includes('/auth/register');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
 
       try {
@@ -87,6 +91,16 @@ apiClient.interceptors.response.use(
       };
       localizedError.response = error.response;
       return Promise.reject(localizedError);
+    }
+
+    // 응답이 있지만 message가 없는 경우 일반적인 에러 메시지
+    if (error.response) {
+      const fallbackMessage = i18n.t('auth.error');
+      const fallbackError = new Error(fallbackMessage) as Error & {
+        response?: typeof error.response
+      };
+      fallbackError.response = error.response;
+      return Promise.reject(fallbackError);
     }
 
     return Promise.reject(error);

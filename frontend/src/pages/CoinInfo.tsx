@@ -3,15 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { newsApi } from '../api/news.api';
 import type { CryptoNews } from '../types/news.types';
-import '../styles/CoinInfo.css';
 
 export default function CoinInfo() {
   const { t } = useTranslation();
   const [page, setPage] = useState(1);
-  const limit = 20;
+  const [limit, setLimit] = useState(10);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['news', page],
+    queryKey: ['news', page, limit],
     queryFn: () => newsApi.getNews(page, limit),
   });
 
@@ -34,71 +33,89 @@ export default function CoinInfo() {
 
   if (isLoading) {
     return (
-      <div className="coin-info-container">
-        <div className="loading-spinner">{t('common.loading')}</div>
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="coin-info-container">
-        <div className="error-message">{t('news.loadError')}</div>
+      <div className="flex items-center justify-center h-64">
+        <p className="text-red-600">{t('news.loadError')}</p>
       </div>
     );
   }
 
   return (
-    <div className="coin-info-container">
-      <h1 className="page-title">{t('menu.coinInfo')}</h1>
-      <p className="page-description">{t('news.description')}</p>
+    <div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('menu.coinNews')}</h1>
+        <div className="flex items-center justify-between mt-1">
+          <p className="text-gray-600 dark:text-gray-400">{t('news.description')}</p>
+          <select
+            value={limit}
+            onChange={(e) => {
+              setLimit(Number(e.target.value));
+              setPage(1);
+            }}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+          >
+            <option value={10}>{t('common.viewPerPage', { count: 10 })}</option>
+            <option value={20}>{t('common.viewPerPage', { count: 20 })}</option>
+            <option value={50}>{t('common.viewPerPage', { count: 50 })}</option>
+          </select>
+        </div>
+      </div>
 
-      <div className="news-list">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         {(!newsData?.news || newsData.news.length === 0) ? (
-          <div className="no-news">{t('news.noNews')}</div>
+          <div className="text-center py-16 text-gray-500 dark:text-gray-400">{t('news.noNews')}</div>
         ) : (
-          newsData.news.map((news: CryptoNews) => (
-            <article
-              key={news.id}
-              className="news-card"
-              onClick={() => handleNewsClick(news)}
-            >
-              {news.imageUrl && (
-                <div className="news-image">
-                  <img src={news.imageUrl} alt={news.title} />
-                </div>
-              )}
-              <div className="news-content">
-                <h2 className="news-title">{news.title}</h2>
-                {news.summary && (
-                  <p className="news-summary">{news.summary}</p>
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+            {newsData.news.map((news: CryptoNews) => (
+              <article
+                key={news.id}
+                className="flex gap-4 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                onClick={() => handleNewsClick(news)}
+              >
+                {news.imageUrl && (
+                  <div className="flex-shrink-0 w-[120px] h-[80px] rounded overflow-hidden">
+                    <img src={news.imageUrl} alt={news.title} className="w-full h-full object-cover" />
+                  </div>
                 )}
-                <div className="news-meta">
-                  <span className="news-source">{news.sourceName}</span>
-                  <span className="news-date">{formatDate(news.publishedAt)}</span>
+                <div className="flex-1 flex flex-col gap-1 min-w-0">
+                  <h2 className="font-medium text-gray-900 dark:text-white line-clamp-2">{news.title}</h2>
+                  {news.summary && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{news.summary}</p>
+                  )}
+                  <div className="flex gap-3 text-xs text-gray-400 dark:text-gray-500 mt-auto">
+                    <span className="font-medium">{news.sourceName}</span>
+                    <span>{formatDate(news.publishedAt)}</span>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))
+              </article>
+            ))}
+          </div>
         )}
       </div>
 
       {newsData && newsData.totalPages > 1 && (
-        <div className="pagination">
+        <div className="flex justify-center items-center gap-4 mt-6">
           <button
             disabled={page <= 1}
             onClick={() => setPage(page - 1)}
-            className="pagination-btn"
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t('common.prev')}
           </button>
-          <span className="pagination-info">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             {page} / {newsData.totalPages}
           </span>
           <button
             disabled={page >= newsData.totalPages}
             onClick={() => setPage(page + 1)}
-            className="pagination-btn"
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t('common.next')}
           </button>

@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { mypageApi, UpdateProfileDto, ChangePasswordDto } from '../api/mypage.api';
 import { useAuthStore } from '../store/authStore';
-import '../styles/MyPage.css';
 
 export default function MyPage() {
   const { t } = useTranslation();
@@ -76,7 +75,6 @@ export default function MyPage() {
       setError(t('mypage.passwordTooShort'));
       return;
     }
-    // 비밀번호 복잡성 검증
     if (!/[A-Za-z]/.test(passwords.newPassword)) {
       setError(t('auth.passwordNoLetter'));
       return;
@@ -95,21 +93,6 @@ export default function MyPage() {
     });
   };
 
-  const getStatusBadgeClass = (status: string) => {
-    return status === 'ACTIVE' ? 'status-badge active' : 'status-badge inactive';
-  };
-
-  const getApprovalBadgeClass = (status: string) => {
-    switch (status) {
-      case 'APPROVED':
-        return 'approval-badge approved';
-      case 'REJECTED':
-        return 'approval-badge rejected';
-      default:
-        return 'approval-badge pending';
-    }
-  };
-
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -121,110 +104,130 @@ export default function MyPage() {
     });
   };
 
+  const getStatusBadge = (status: string) => {
+    const isActive = status === 'ACTIVE';
+    return (
+      <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${isActive ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}>
+        {t(`status.${status?.toLowerCase()}`)}
+      </span>
+    );
+  };
+
+  const getApprovalBadge = (status: string) => {
+    const colors: Record<string, string> = {
+      APPROVED: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      REJECTED: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+      PENDING: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+    };
+    return (
+      <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${colors[status] || colors.PENDING}`}>
+        {t(`approvalStatus.${status?.toLowerCase()}`)}
+      </span>
+    );
+  };
+
   if (isLoading) {
     return (
-      <div className="mypage-container">
-        <div className="loading">{t('common.loading')}</div>
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
       </div>
     );
   }
 
   return (
-    <div className="mypage-container">
-      <h1 className="page-title">{t('menu.mypage')}</h1>
+    <div>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('menu.mypage')}</h1>
 
-      {success && <div className="success-message">{success}</div>}
-      {error && <div className="error-message">{error}</div>}
+      {success && (
+        <div className="mb-4 p-3 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 rounded-lg text-sm">
+          {success}
+        </div>
+      )}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
 
-      <div className="profile-card">
-        <h2 className="section-title">{t('mypage.accountInfo')}</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('mypage.accountInfo')}</h2>
 
-        <div className="profile-item">
-          <span className="label">{t('mypage.email')}</span>
-          <span className="value">{profile?.email}</span>
+        <div className="space-y-3">
+          {[
+            { label: t('mypage.email'), value: profile?.email },
+            { label: t('mypage.username'), value: profile?.username },
+            { label: t('mypage.name'), value: profile?.name },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center py-2 border-b border-gray-100 dark:border-gray-700">
+              <span className="w-32 text-sm font-medium text-gray-500 dark:text-gray-400">{item.label}</span>
+              <span className="text-sm text-gray-900 dark:text-white">{item.value}</span>
+            </div>
+          ))}
+
+          <div className="flex items-center py-2 border-b border-gray-100 dark:border-gray-700">
+            <span className="w-32 text-sm font-medium text-gray-500 dark:text-gray-400">{t('mypage.nickname')}</span>
+            {isEditing ? (
+              <input
+                type="text"
+                className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder={t('mypage.nicknamePlaceholder')}
+              />
+            ) : (
+              <span className="text-sm text-gray-900 dark:text-white">{profile?.nickname || '-'}</span>
+            )}
+          </div>
+
+          {[
+            { label: t('mypage.phone'), value: profile?.phone },
+            { label: t('mypage.address'), value: profile?.address },
+            { label: t('mypage.ssn'), value: profile?.ssnMasked || '-' },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center py-2 border-b border-gray-100 dark:border-gray-700">
+              <span className="w-32 text-sm font-medium text-gray-500 dark:text-gray-400">{item.label}</span>
+              <span className="text-sm text-gray-900 dark:text-white">{item.value}</span>
+            </div>
+          ))}
+
+          <div className="flex items-center py-2 border-b border-gray-100 dark:border-gray-700">
+            <span className="w-32 text-sm font-medium text-gray-500 dark:text-gray-400">{t('mypage.role')}</span>
+            <span className="text-sm text-gray-900 dark:text-white">{t(`roles.${profile?.role?.toLowerCase()}`)}</span>
+          </div>
+
+          <div className="flex items-center py-2 border-b border-gray-100 dark:border-gray-700">
+            <span className="w-32 text-sm font-medium text-gray-500 dark:text-gray-400">{t('mypage.status')}</span>
+            {getStatusBadge(profile?.status || '')}
+          </div>
+
+          <div className="flex items-center py-2 border-b border-gray-100 dark:border-gray-700">
+            <span className="w-32 text-sm font-medium text-gray-500 dark:text-gray-400">{t('mypage.approvalStatus')}</span>
+            {getApprovalBadge(profile?.approvalStatus || '')}
+          </div>
+
+          {[
+            { label: t('mypage.lastLogin'), value: formatDate(profile?.lastLoginAt) },
+            { label: t('mypage.memberSince'), value: formatDate(profile?.createdAt) },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center py-2 border-b border-gray-100 dark:border-gray-700">
+              <span className="w-32 text-sm font-medium text-gray-500 dark:text-gray-400">{item.label}</span>
+              <span className="text-sm text-gray-900 dark:text-white">{item.value}</span>
+            </div>
+          ))}
         </div>
 
-        <div className="profile-item">
-          <span className="label">{t('mypage.username')}</span>
-          <span className="value">{profile?.username}</span>
-        </div>
-
-        <div className="profile-item">
-          <span className="label">{t('mypage.name')}</span>
-          <span className="value">{profile?.name}</span>
-        </div>
-
-        <div className="profile-item">
-          <span className="label">{t('mypage.nickname')}</span>
-          {isEditing ? (
-            <input
-              type="text"
-              className="edit-input"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              placeholder={t('mypage.nicknamePlaceholder')}
-            />
-          ) : (
-            <span className="value">{profile?.nickname || '-'}</span>
-          )}
-        </div>
-
-        <div className="profile-item">
-          <span className="label">{t('mypage.phone')}</span>
-          <span className="value">{profile?.phone}</span>
-        </div>
-
-        <div className="profile-item">
-          <span className="label">{t('mypage.address')}</span>
-          <span className="value">{profile?.address}</span>
-        </div>
-
-        <div className="profile-item">
-          <span className="label">{t('mypage.ssn')}</span>
-          <span className="value">{profile?.ssnMasked || '-'}</span>
-        </div>
-
-        <div className="profile-item">
-          <span className="label">{t('mypage.role')}</span>
-          <span className="value">{t(`roles.${profile?.role?.toLowerCase()}`)}</span>
-        </div>
-
-        <div className="profile-item">
-          <span className="label">{t('mypage.status')}</span>
-          <span className={getStatusBadgeClass(profile?.status || '')}>
-            {t(`status.${profile?.status?.toLowerCase()}`)}
-          </span>
-        </div>
-
-        <div className="profile-item">
-          <span className="label">{t('mypage.approvalStatus')}</span>
-          <span className={getApprovalBadgeClass(profile?.approvalStatus || '')}>
-            {t(`approvalStatus.${profile?.approvalStatus?.toLowerCase()}`)}
-          </span>
-        </div>
-
-        <div className="profile-item">
-          <span className="label">{t('mypage.lastLogin')}</span>
-          <span className="value">{formatDate(profile?.lastLoginAt)}</span>
-        </div>
-
-        <div className="profile-item">
-          <span className="label">{t('mypage.memberSince')}</span>
-          <span className="value">{formatDate(profile?.createdAt)}</span>
-        </div>
-
-        <div className="button-group">
+        <div className="flex gap-2 mt-6">
           {isEditing ? (
             <>
               <button
-                className="btn btn-primary"
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                 onClick={handleUpdateProfile}
                 disabled={updateProfileMutation.isPending}
               >
                 {t('common.save')}
               </button>
               <button
-                className="btn btn-secondary"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 onClick={() => {
                   setIsEditing(false);
                   setNickname(profile?.nickname || '');
@@ -235,7 +238,7 @@ export default function MyPage() {
             </>
           ) : (
             <button
-              className="btn btn-primary"
+              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors"
               onClick={() => setIsEditing(true)}
             >
               {t('mypage.editProfile')}
@@ -244,58 +247,51 @@ export default function MyPage() {
         </div>
       </div>
 
-      <div className="profile-card">
-        <h2 className="section-title">{t('mypage.security')}</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('mypage.security')}</h2>
 
         {showPasswordForm ? (
-          <div className="password-form">
-            <div className="form-group">
-              <label>{t('mypage.currentPassword')}</label>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('mypage.currentPassword')}</label>
               <input
                 type="password"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                 value={passwords.currentPassword}
-                onChange={(e) =>
-                  setPasswords({ ...passwords, currentPassword: e.target.value })
-                }
+                onChange={(e) => setPasswords({ ...passwords, currentPassword: e.target.value })}
               />
             </div>
-            <div className="form-group">
-              <label>{t('mypage.newPassword')}</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('mypage.newPassword')}</label>
               <input
                 type="password"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                 value={passwords.newPassword}
-                onChange={(e) =>
-                  setPasswords({ ...passwords, newPassword: e.target.value })
-                }
+                onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
               />
             </div>
-            <div className="form-group">
-              <label>{t('mypage.confirmPassword')}</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('mypage.confirmPassword')}</label>
               <input
                 type="password"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                 value={passwords.confirmPassword}
-                onChange={(e) =>
-                  setPasswords({ ...passwords, confirmPassword: e.target.value })
-                }
+                onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
               />
             </div>
-            <div className="button-group">
+            <div className="flex gap-2">
               <button
-                className="btn btn-primary"
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                 onClick={handleChangePassword}
                 disabled={changePasswordMutation.isPending}
               >
                 {t('mypage.changePassword')}
               </button>
               <button
-                className="btn btn-secondary"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 onClick={() => {
                   setShowPasswordForm(false);
-                  setPasswords({
-                    currentPassword: '',
-                    newPassword: '',
-                    confirmPassword: '',
-                  });
+                  setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
                 }}
               >
                 {t('common.cancel')}
@@ -304,7 +300,7 @@ export default function MyPage() {
           </div>
         ) : (
           <button
-            className="btn btn-secondary"
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             onClick={() => setShowPasswordForm(true)}
           >
             {t('mypage.changePassword')}

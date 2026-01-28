@@ -180,3 +180,38 @@
     width: 100%;
   }
 }
+
+/* No Data Message */
+.no-data-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.no-data-icon {
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.no-data-icon svg {
+  width: 64px;
+  height: 64px;
+  color: var(--text-muted);
+}
+
+.no-data-text {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.no-data-subtext {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
