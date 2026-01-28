@@ -10,7 +10,7 @@ interface ConfirmModalProps {
   confirmText?: string;
   cancelText?: string;
   isLoading?: boolean;
-  variant?: 'default' | 'danger';
+  variant?: 'default' | 'danger' | 'warning';
   showCancel?: boolean;
 }
 
@@ -29,10 +29,17 @@ export default function ConfirmModal({
   const { t } = useTranslation();
   const finalConfirmText = confirmText || t('common.confirm');
   const finalCancelText = cancelText || t('common.cancel');
-  const confirmButtonClass =
-    variant === 'danger'
-      ? 'bg-red-600 hover:bg-red-700 text-white'
-      : 'bg-primary-600 hover:bg-primary-700 text-white';
+
+  const confirmButtonClass = (() => {
+    switch (variant) {
+      case 'danger':
+        return 'bg-red-600 hover:bg-red-700 text-white';
+      case 'warning':
+        return 'bg-amber-500 hover:bg-amber-600 text-white';
+      default:
+        return 'bg-primary-600 hover:bg-primary-700 text-white';
+    }
+  })();
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>

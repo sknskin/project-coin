@@ -1,7 +1,28 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../store/authStore';
+import i18n from '../i18n';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+// 서버 에러 메시지를 i18n 키로 매핑
+const errorMessageMap: Record<string, string> = {
+  '회원가입 승인 대기 중입니다. 관리자 승인 후 로그인이 가능합니다.': 'auth.loginPendingApproval',
+  '회원가입이 거절되었습니다. 관리자에게 문의해주세요.': 'auth.loginRejected',
+  '비활성화된 계정입니다. 관리자에게 문의해주세요.': 'auth.loginInactive',
+  '이메일/아이디 또는 비밀번호가 올바르지 않습니다.': 'auth.loginInvalidCredentials',
+  '이미 사용 중인 이메일입니다.': 'auth.emailTaken',
+  '이미 사용 중인 아이디입니다.': 'auth.usernameTaken',
+  '이미 사용 중인 닉네임입니다.': 'auth.nicknameTaken',
+};
+
+function getLocalizedErrorMessage(serverMessage: string): string {
+  const i18nKey = errorMessageMap[serverMessage];
+  if (i18nKey) {
+    return i18n.t(i18nKey);
+  }
+  // 서버 메시지를 그대로 반환
+  return serverMessage;
+}
 
 export const apiClient = axios.create({
   baseURL: `${API_URL}/api`,
@@ -23,10 +44,10 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// Response interceptor - handle token refresh
+// Response interceptor - handle token refresh and localize errors
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
+  async (error: AxiosError<{ message?: string | string[] }>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
@@ -50,6 +71,22 @@ apiClient.interceptors.response.use(
         useAuthStore.getState().logout();
         return Promise.reject(refreshError);
       }
+    }
+
+    // 에러 메시지 로컬라이즈
+    if (error.response?.data?.message) {
+      const serverMessage = Array.isArray(error.response.data.message)
+        ? error.response.data.message[0]
+        : error.response.data.message;
+
+      const localizedMessage = getLocalizedErrorMessage(serverMessage);
+
+      // 새로운 에러 객체 생성
+      const localizedError = new Error(localizedMessage) as Error & {
+        response?: typeof error.response
+      };
+      localizedError.response = error.response;
+      return Promise.reject(localizedError);
     }
 
     return Promise.reject(error);

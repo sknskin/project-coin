@@ -59,20 +59,25 @@ export default function Header() {
   );
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-8">
+        <div className="flex items-center justify-between h-14">
+          <div className="flex items-center space-x-4">
+            {/* 테마/언어 토글을 로고 왼쪽에 배치 */}
+            <div className="flex items-center space-x-1">
+              <ThemeToggle />
+              <LanguageToggle />
+            </div>
             <Link to="/" className="text-xl font-bold text-primary-600 dark:text-primary-400">
               Project Coin
             </Link>
-            <nav className="hidden md:flex space-x-6">
+            <nav className="hidden md:flex space-x-6 ml-4">
               {visibleMenus.map((menu) => (
                 menu.path && (
                   <Link
                     key={menu.id}
                     to={menu.path}
-                    className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                    className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-sm"
                   >
                     {getMenuLabel(menu)}
                   </Link>
@@ -81,9 +86,7 @@ export default function Header() {
             </nav>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <ThemeToggle />
-            <LanguageToggle />
+          <div className="flex items-center space-x-2">
             {isAuthenticated ? (
               <>
                 <div className="flex items-center space-x-2 text-sm">
@@ -94,7 +97,7 @@ export default function Header() {
                     {user?.nickname || user?.name || user?.email}{t('auth.userSuffix')}
                   </button>
                   <span
-                    className={`font-mono tabular-nums px-2 py-0.5 rounded ${
+                    className={`font-mono tabular-nums px-2 py-0.5 rounded text-xs ${
                       isExpiringSoon
                         ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300'
                         : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
@@ -109,7 +112,7 @@ export default function Header() {
                 </div>
                 <button
                   onClick={handleLogoutClick}
-                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   {t('auth.logout')}
                 </button>
@@ -128,13 +131,13 @@ export default function Header() {
               <>
                 <button
                   onClick={() => openAuthModal('login')}
-                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   {t('auth.login')}
                 </button>
                 <button
                   onClick={() => openAuthModal('register')}
-                  className="px-4 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                 >
                   {t('auth.register')}
                 </button>

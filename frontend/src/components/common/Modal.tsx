@@ -11,6 +11,7 @@ interface ModalProps {
 export default function Modal({ isOpen, onClose, title, children, autoFocus = true }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<Element | null>(null);
+  const savedScrollY = useRef<number | null>(null);
 
   const focusFirstInput = useCallback(() => {
     if (!modalRef.current || !autoFocus) return;
@@ -28,45 +29,45 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
   }, [autoFocus]);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
       }
     };
 
-    if (isOpen) {
-      // 현재 포커스된 요소 저장
-      previousActiveElement.current = document.activeElement;
+    // 현재 포커스된 요소 저장
+    previousActiveElement.current = document.activeElement;
 
-      // 현재 스크롤 위치 저장
-      const scrollY = window.scrollY;
-      document.body.dataset.scrollY = String(scrollY);
+    // 현재 스크롤 위치 저장
+    savedScrollY.current = window.scrollY;
 
-      // body를 fixed로 만들어 스크롤 방지
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-      document.body.style.overflowY = 'scroll'; // 스크롤바 공간 유지
+    // body를 fixed로 만들어 스크롤 방지
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${savedScrollY.current}px`;
+    document.body.style.width = '100%';
+    document.body.style.overflowY = 'scroll'; // 스크롤바 공간 유지
 
-      document.addEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', handleEscape);
 
-      // 첫 번째 입력 요소에 포커스
-      focusFirstInput();
-    }
+    // 첫 번째 입력 요소에 포커스
+    focusFirstInput();
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
 
-      // 저장된 스크롤 위치 복원
-      const scrollY = document.body.dataset.scrollY || '0';
+      // body 스타일 복원
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
       document.body.style.overflowY = '';
-      delete document.body.dataset.scrollY;
 
-      // 스크롤 위치 복원
-      window.scrollTo(0, parseInt(scrollY));
+      // 스크롤 위치 복원 (저장된 값이 있을 때만)
+      if (savedScrollY.current !== null) {
+        window.scrollTo(0, savedScrollY.current);
+        savedScrollY.current = null;
+      }
 
       // 모달 닫힐 때 이전 요소로 포커스 복원
       if (previousActiveElement.current instanceof HTMLElement) {
