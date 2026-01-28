@@ -4,9 +4,16 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import CoinDetail from './pages/CoinDetail';
 import Portfolio from './pages/Portfolio';
+import CoinInfo from './pages/CoinInfo';
+import MyPage from './pages/MyPage';
+import MemberManagement from './pages/admin/MemberManagement';
+import MemberDetail from './pages/admin/MemberDetail';
+import Statistics from './pages/admin/Statistics';
 import AuthModal from './components/auth/AuthModal';
 import SessionWarningModal from './components/session/SessionWarningModal';
 import ChatSidebar from './components/chat/ChatSidebar';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { AdminRoute } from './components/auth/AdminRoute';
 import { useUIStore } from './store/uiStore';
 import { useAuthStore } from './store/authStore';
 import { useSessionManager } from './hooks/useSessionManager';
@@ -30,7 +37,12 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/coins" element={<Dashboard />} />
           <Route path="/coin/:marketCode" element={<CoinDetail />} />
-          <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/coin-info" element={<CoinInfo />} />
+          <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
+          <Route path="/mypage" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
+          <Route path="/admin/members" element={<AdminRoute><MemberManagement /></AdminRoute>} />
+          <Route path="/admin/members/:id" element={<AdminRoute><MemberDetail /></AdminRoute>} />
+          <Route path="/admin/statistics" element={<AdminRoute><Statistics /></AdminRoute>} />
         </Routes>
       </main>
       {isAuthenticated && <ChatSidebar />}

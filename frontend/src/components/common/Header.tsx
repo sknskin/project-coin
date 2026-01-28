@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
+import { useMenuStore } from '../../store/menuStore';
 import { useAuth } from '../../hooks/useAuth';
 import { useSessionTimer } from '../../hooks/useSessionTimer';
 import ThemeToggle from './ThemeToggle';
@@ -12,12 +13,18 @@ import NotificationIcon from '../notification/NotificationIcon';
 import ChatIcon from '../chat/ChatIcon';
 
 export default function Header() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
   const { openAuthModal } = useUIStore();
+  const { menus, fetchMenus } = useMenuStore();
   const { logout } = useAuth();
   const { formattedTime, isExpiringSoon } = useSessionTimer();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetchMenus();
+  }, [fetchMenus, isAuthenticated]);
 
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
@@ -28,6 +35,28 @@ export default function Header() {
     setIsLogoutModalOpen(false);
   };
 
+  const handleNicknameClick = () => {
+    navigate('/mypage');
+  };
+
+  const getMenuLabel = (menu: { name: string; nameEn: string }) => {
+    return i18n.language === 'ko' ? menu.name : menu.nameEn;
+  };
+
+  const canShowMenu = (requiredRole: string | null) => {
+    if (!requiredRole) return true;
+    if (!isAuthenticated || !user) return false;
+    if (requiredRole === 'USER') return true;
+    if (requiredRole === 'ADMIN') {
+      return user.role === 'ADMIN' || user.role === 'SYSTEM';
+    }
+    return false;
+  };
+
+  const visibleMenus = menus.filter(
+    (menu) => menu.depth === 1 && canShowMenu(menu.requiredRole)
+  );
+
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto px-4">
@@ -37,20 +66,17 @@ export default function Header() {
               Project Coin
             </Link>
             <nav className="hidden md:flex space-x-6">
-              <Link
-                to="/coins"
-                className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-              >
-                {t('nav.price')}
-              </Link>
-              {isAuthenticated && (
-                <Link
-                  to="/portfolio"
-                  className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                >
-                  {t('nav.portfolio')}
-                </Link>
-              )}
+              {visibleMenus.map((menu) => (
+                menu.path && (
+                  <Link
+                    key={menu.id}
+                    to={menu.path}
+                    className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  >
+                    {getMenuLabel(menu)}
+                  </Link>
+                )
+              ))}
             </nav>
           </div>
 
@@ -60,9 +86,12 @@ export default function Header() {
             {isAuthenticated ? (
               <>
                 <div className="flex items-center space-x-2 text-sm">
-                  <span className="text-gray-600 dark:text-gray-300">
+                  <button
+                    onClick={handleNicknameClick}
+                    className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors cursor-pointer"
+                  >
                     {user?.nickname || user?.email}{t('auth.userSuffix')}
-                  </span>
+                  </button>
                   <span
                     className={`font-mono tabular-nums px-2 py-0.5 rounded ${
                       isExpiringSoon

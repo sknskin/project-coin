@@ -3,13 +3,16 @@ import {
   ConflictException,
   UnauthorizedException,
   ForbiddenException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
-import { UserRole } from '@prisma/client';
+import { UserRole, NotificationType, UserStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationService } from '../notification/notification.service';
 import { RegisterDto, LoginDto } from './dto';
 
 export interface JwtPayload {
@@ -38,6 +41,8 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    @Inject(forwardRef(() => NotificationService))
+    private notificationService: NotificationService,
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthResponse> {
@@ -67,6 +72,9 @@ export class AuthService {
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
 
+    // Notify all admins about new registration
+    await this.notifyAdminsAboutNewRegistration(user);
+
     return {
       user: {
         id: user.id,
@@ -78,6 +86,31 @@ export class AuthService {
       },
       ...tokens,
     };
+  }
+
+  private async notifyAdminsAboutNewRegistration(user: {
+    id: string;
+    email: string;
+    nickname: string | null;
+  }) {
+    try {
+      const admins = await this.prisma.user.findMany({
+        where: { role: UserRole.ADMIN },
+        select: { id: true },
+      });
+
+      for (const admin of admins) {
+        await this.notificationService.create(admin.id, {
+          type: NotificationType.SYSTEM,
+          title: '새로운 회원가입 요청',
+          message: `${user.nickname || user.email}님이 회원가입을 요청했습니다.`,
+          data: { userId: user.id, type: 'registration_request' },
+        });
+      }
+    } catch (error) {
+      // Don't fail registration if notification fails
+      console.error('Failed to notify admins:', error);
+    }
   }
 
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string): Promise<AuthResponse> {
@@ -97,13 +130,24 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // 비활성화된 사용자 체크
+    if (user.status === UserStatus.INACTIVE) {
+      throw new ForbiddenException('Account is deactivated');
+    }
+
     // 승인되지 않은 사용자 체크 (ADMIN은 승인 필요 없음)
     if (!user.isApproved && user.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Account pending approval');
     }
 
-    // 성공한 로그인 기록
-    await this.recordLoginHistory(user.id, ipAddress, userAgent, true);
+    // 성공한 로그인 기록 및 lastLoginAt 업데이트
+    await Promise.all([
+      this.recordLoginHistory(user.id, ipAddress, userAgent, true),
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() },
+      }),
+    ]);
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.saveRefreshToken(user.id, tokens.refreshToken);

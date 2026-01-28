@@ -1,0 +1,182 @@
+.statistics-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.statistics-container .page-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: var(--text-primary);
+}
+
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon.visitors {
+  background: rgba(52, 152, 219, 0.2);
+}
+
+.stat-icon.visitors::before {
+  content: '👥';
+  font-size: 24px;
+}
+
+.stat-icon.logins {
+  background: rgba(46, 204, 113, 0.2);
+}
+
+.stat-icon.logins::before {
+  content: '🔑';
+  font-size: 24px;
+}
+
+.stat-icon.registrations {
+  background: rgba(155, 89, 182, 0.2);
+}
+
+.stat-icon.registrations::before {
+  content: '📝';
+  font-size: 24px;
+}
+
+.stat-icon.pageviews {
+  background: rgba(241, 196, 15, 0.2);
+}
+
+.stat-icon.pageviews::before {
+  content: '📊';
+  font-size: 24px;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.date-range-selector {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.date-range-selector label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-inputs input {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.date-inputs span {
+  color: var(--text-secondary);
+}
+
+.charts-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.chart-card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.chart-card h3 {
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+/* Recharts tooltip customization */
+.recharts-tooltip-wrapper {
+  outline: none;
+}
+
+@media (max-width: 1024px) {
+  .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .date-range-selector {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .date-inputs {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .date-inputs input {
+    width: 100%;
+  }
+}
