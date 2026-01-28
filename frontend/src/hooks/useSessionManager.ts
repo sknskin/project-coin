@@ -1,41 +1,44 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useSessionStore } from '../store/sessionStore';
 import { useAuth } from './useAuth';
+import { authApi } from '../api/auth.api';
 
 const WARNING_THRESHOLDS = [10 * 60, 5 * 60, 1 * 60]; // 10min, 5min, 1min (seconds)
 
 export function useSessionManager() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, accessToken } = useAuthStore();
   const {
     sessionExpiresAt,
     remainingSeconds,
     isSessionWarningOpen,
+    lastWarningThreshold,
     startSession,
     endSession,
     updateRemainingTime,
     openSessionWarning,
     closeSessionWarning,
-    extendSession,
+    setLastWarningThreshold,
   } = useSessionStore();
   const { logout } = useAuth();
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const lastWarningThresholdRef = useRef<number | null>(null);
+  const initializedRef = useRef(false);
 
   // Start session on login
   useEffect(() => {
-    if (isAuthenticated && !sessionExpiresAt) {
-      startSession();
-      lastWarningThresholdRef.current = null;
+    if (isAuthenticated && accessToken && !initializedRef.current) {
+      startSession(accessToken);
+      initializedRef.current = true;
+    } else if (!isAuthenticated) {
+      initializedRef.current = false;
     }
-  }, [isAuthenticated, sessionExpiresAt, startSession]);
+  }, [isAuthenticated, accessToken, startSession]);
 
   // End session on logout
   useEffect(() => {
     if (!isAuthenticated) {
       endSession();
-      lastWarningThresholdRef.current = null;
     }
   }, [isAuthenticated, endSession]);
 
@@ -78,19 +81,28 @@ export function useSessionManager() {
       if (
         remainingSeconds <= threshold &&
         remainingSeconds > threshold - 1 &&
-        lastWarningThresholdRef.current !== threshold
+        lastWarningThreshold !== threshold
       ) {
         openSessionWarning();
-        lastWarningThresholdRef.current = threshold;
+        setLastWarningThreshold(threshold);
         break;
       }
     }
-  }, [remainingSeconds, isAuthenticated, sessionExpiresAt, logout, endSession, openSessionWarning]);
+  }, [remainingSeconds, isAuthenticated, sessionExpiresAt, lastWarningThreshold, logout, endSession, openSessionWarning, setLastWarningThreshold]);
 
-  const handleExtend = useCallback(() => {
-    extendSession();
-    lastWarningThresholdRef.current = null;
-  }, [extendSession]);
+  const handleExtend = useCallback(async () => {
+    try {
+      const response = await authApi.refresh();
+      if (response.accessToken) {
+        useAuthStore.getState().updateAccessToken(response.accessToken);
+        startSession(response.accessToken);
+      }
+      closeSessionWarning();
+    } catch (error) {
+      console.error('Failed to extend session:', error);
+      logout();
+    }
+  }, [startSession, closeSessionWarning, logout]);
 
   const handleDismiss = useCallback(() => {
     closeSessionWarning();

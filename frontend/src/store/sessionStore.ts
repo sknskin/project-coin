@@ -1,33 +1,47 @@
 import { create } from 'zustand';
+import { getTokenExpiration } from '../utils/jwt';
 
 interface SessionState {
   sessionExpiresAt: number | null;
   isSessionWarningOpen: boolean;
   remainingSeconds: number;
+  lastWarningThreshold: number | null;
 
-  startSession: () => void;
-  extendSession: () => void;
+  startSession: (accessToken: string) => void;
+  extendSession: (accessToken: string) => void;
   endSession: () => void;
   updateRemainingTime: () => void;
   openSessionWarning: () => void;
   closeSessionWarning: () => void;
+  setLastWarningThreshold: (threshold: number | null) => void;
 }
-
-const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes
 
 export const useSessionStore = create<SessionState>((set, get) => ({
   sessionExpiresAt: null,
   isSessionWarningOpen: false,
   remainingSeconds: 0,
+  lastWarningThreshold: null,
 
-  startSession: () => {
-    const expiresAt = Date.now() + SESSION_DURATION;
-    set({ sessionExpiresAt: expiresAt, isSessionWarningOpen: false });
+  startSession: (accessToken: string) => {
+    const expiresAt = getTokenExpiration(accessToken);
+    if (expiresAt) {
+      set({
+        sessionExpiresAt: expiresAt,
+        isSessionWarningOpen: false,
+        lastWarningThreshold: null,
+      });
+    }
   },
 
-  extendSession: () => {
-    const expiresAt = Date.now() + SESSION_DURATION;
-    set({ sessionExpiresAt: expiresAt, isSessionWarningOpen: false });
+  extendSession: (accessToken: string) => {
+    const expiresAt = getTokenExpiration(accessToken);
+    if (expiresAt) {
+      set({
+        sessionExpiresAt: expiresAt,
+        isSessionWarningOpen: false,
+        lastWarningThreshold: null,
+      });
+    }
   },
 
   endSession: () => {
@@ -35,6 +49,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       sessionExpiresAt: null,
       isSessionWarningOpen: false,
       remainingSeconds: 0,
+      lastWarningThreshold: null,
     });
   },
 
@@ -48,4 +63,5 @@ export const useSessionStore = create<SessionState>((set, get) => ({
 
   openSessionWarning: () => set({ isSessionWarningOpen: true }),
   closeSessionWarning: () => set({ isSessionWarningOpen: false }),
+  setLastWarningThreshold: (threshold) => set({ lastWarningThreshold: threshold }),
 }));
