@@ -90,6 +90,11 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
+    // 주민등록번호 처리 (해시 저장 + 앞자리와 뒷자리 첫번째 저장)
+    const [ssnFirst, ssnSecond] = dto.ssn.split('-');
+    const ssnHash = await bcrypt.hash(dto.ssn, 10);
+    const ssnGender = ssnSecond.charAt(0);
+
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
@@ -99,6 +104,9 @@ export class AuthService {
         name: dto.name,
         phone: dto.phone,
         address: dto.address,
+        ssnHash,
+        ssnFirst,
+        ssnGender,
         role: UserRole.USER,
         status: UserStatus.INACTIVE, // 승인 전까지 비활성화
         approvalStatus: ApprovalStatus.PENDING,

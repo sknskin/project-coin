@@ -8,7 +8,7 @@ export class MyPageService {
   constructor(private prisma: PrismaService) {}
 
   async getProfile(userId: string) {
-    return this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -18,6 +18,8 @@ export class MyPageService {
         name: true,
         phone: true,
         address: true,
+        ssnFirst: true,
+        ssnGender: true,
         role: true,
         status: true,
         isApproved: true,
@@ -27,6 +29,17 @@ export class MyPageService {
         lastLoginAt: true,
       },
     });
+
+    // 주민등록번호 마스킹 처리 (앞자리-뒷자리첫번째******)
+    if (user) {
+      return {
+        ...user,
+        ssnMasked: user.ssnFirst && user.ssnGender
+          ? `${user.ssnFirst}-${user.ssnGender}******`
+          : null,
+      };
+    }
+    return user;
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto) {

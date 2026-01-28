@@ -180,6 +180,11 @@ export default function MyPage() {
         </div>
 
         <div className="profile-item">
+          <span className="label">{t('mypage.ssn')}</span>
+          <span className="value">{profile?.ssnMasked || '-'}</span>
+        </div>
+
+        <div className="profile-item">
           <span className="label">{t('mypage.role')}</span>
           <span className="value">{t(`roles.${profile?.role?.toLowerCase()}`)}</span>
         </div>

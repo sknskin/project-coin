@@ -33,6 +33,9 @@ model User {
   name           String                              // 성명 (필수)
   phone          String                              // 연락처 (필수)
   address        String                              // 주소 (필수)
+  ssnHash        String?        @map("ssn_hash")     // 주민등록번호 해시
+  ssnFirst       String?        @map("ssn_first")    // 주민번호 앞자리 (조회용)
+  ssnGender      String?        @map("ssn_gender")   // 주민번호 뒷자리 첫번째 (조회용)
   role           UserRole       @default(USER)
   status         UserStatus     @default(INACTIVE)   // 승인 전까지 비활성화
   isApproved     Boolean        @default(false) @map("is_approved")

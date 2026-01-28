@@ -10,6 +10,7 @@ export interface User {
   name: string;
   phone?: string;
   address?: string;
+  ssnMasked?: string;
   role: UserRole;
   status: UserStatus;
   approvalStatus: ApprovalStatus;
@@ -31,6 +32,7 @@ export interface RegisterRequest {
   name: string;
   phone: string;
   address: string;
+  ssn: string;
 }
 
 export interface AuthResponse {

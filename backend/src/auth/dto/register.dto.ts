@@ -38,11 +38,15 @@ export class RegisterDto {
   name: string;
 
   @IsString({ message: '연락처를 입력해주세요.' })
-  @Matches(/^[0-9-]+$/, { message: '연락처는 숫자와 하이픈(-)만 입력 가능합니다.' })
+  @Matches(/^[0-9]+$/, { message: '연락처는 숫자만 입력 가능합니다. (하이픈 제외)' })
   phone: string;
 
   @IsString({ message: '주소를 입력해주세요.' })
   @MinLength(5, { message: '주소를 정확히 입력해주세요.' })
   @MaxLength(200)
   address: string;
+
+  @IsString({ message: '주민등록번호를 입력해주세요.' })
+  @Matches(/^[0-9]{6}-[0-9]{7}$/, { message: '주민등록번호 형식이 올바르지 않습니다. (예: 900101-1234567)' })
+  ssn: string;
 }

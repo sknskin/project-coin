@@ -64,6 +64,8 @@ export class AdminService {
         name: true,
         phone: true,
         address: true,
+        ssnFirst: true,
+        ssnGender: true,
         role: true,
         status: true,
         approvalStatus: true,
@@ -96,7 +98,13 @@ export class AdminService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    // 주민등록번호 마스킹 처리
+    return {
+      ...user,
+      ssnMasked: user.ssnFirst && user.ssnGender
+        ? `${user.ssnFirst}-${user.ssnGender}******`
+        : null,
+    };
   }
 
   async approveUser(adminId: string, userId: string, dto: ApproveUserDto) {

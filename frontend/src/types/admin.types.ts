@@ -10,6 +10,7 @@ export interface AdminUser {
   name: string;
   phone: string;
   address?: string | null;
+  ssnMasked?: string | null;
   role: UserRole;
   status: UserStatus;
   approvalStatus: ApprovalStatus;

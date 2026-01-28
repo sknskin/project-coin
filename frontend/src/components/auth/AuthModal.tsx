@@ -15,6 +15,7 @@ interface FormErrors {
   name?: string;
   phone?: string;
   address?: string;
+  ssn?: string;
 }
 
 export default function AuthModal() {
@@ -35,6 +36,8 @@ export default function AuthModal() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [ssnFirst, setSsnFirst] = useState('');
+  const [ssnSecond, setSsnSecond] = useState('');
 
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -128,16 +131,23 @@ export default function AuthModal() {
       errors.name = t('auth.nameRequired');
     }
 
-    // 연락처 검증
+    // 연락처 검증 (숫자만, 하이픈 없음)
     if (!phone) {
       errors.phone = t('auth.phoneRequired');
-    } else if (!/^[0-9-]+$/.test(phone)) {
+    } else if (!/^[0-9]+$/.test(phone) || phone.length < 10 || phone.length > 11) {
       errors.phone = t('auth.phoneInvalid');
     }
 
     // 주소 검증
     if (!address || address.length < 5) {
       errors.address = t('auth.addressRequired');
+    }
+
+    // 주민등록번호 검증
+    if (!ssnFirst || ssnFirst.length !== 6 || !/^\d{6}$/.test(ssnFirst)) {
+      errors.ssn = t('auth.ssnInvalid');
+    } else if (!ssnSecond || ssnSecond.length !== 7 || !/^\d{7}$/.test(ssnSecond)) {
+      errors.ssn = t('auth.ssnInvalid');
     }
 
     setFormErrors(errors);
@@ -168,6 +178,7 @@ export default function AuthModal() {
         name,
         phone,
         address,
+        ssn: `${ssnFirst}-${ssnSecond}`,
       });
     } catch {
       // Error is handled by the hook
@@ -187,6 +198,8 @@ export default function AuthModal() {
     setName('');
     setPhone('');
     setAddress('');
+    setSsnFirst('');
+    setSsnSecond('');
     setFormErrors({});
   };
 
@@ -364,13 +377,15 @@ export default function AuthModal() {
               type="tel"
               id="phone"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="010-1234-5678"
+              onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
+              placeholder="01012345678"
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${formErrors.phone ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
               required
               autoComplete="tel"
+              maxLength={11}
             />
             {formErrors.phone && <p className="text-xs text-red-500 mt-1">{formErrors.phone}</p>}
+            <p className="text-xs text-gray-500 mt-1">{t('auth.phoneHint')}</p>
           </div>
 
           <div>
@@ -387,6 +402,37 @@ export default function AuthModal() {
               autoComplete="street-address"
             />
             {formErrors.address && <p className="text-xs text-red-500 mt-1">{formErrors.address}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="ssn" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('auth.ssn')} <span className="text-red-500">*</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                id="ssnFirst"
+                value={ssnFirst}
+                onChange={(e) => setSsnFirst(e.target.value.replace(/[^0-9]/g, ''))}
+                placeholder="900101"
+                className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${formErrors.ssn ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                required
+                maxLength={6}
+              />
+              <span className="text-gray-500">-</span>
+              <input
+                type="password"
+                id="ssnSecond"
+                value={ssnSecond}
+                onChange={(e) => setSsnSecond(e.target.value.replace(/[^0-9]/g, ''))}
+                placeholder="*******"
+                className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${formErrors.ssn ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                required
+                maxLength={7}
+              />
+            </div>
+            {formErrors.ssn && <p className="text-xs text-red-500 mt-1">{formErrors.ssn}</p>}
+            <p className="text-xs text-gray-500 mt-1">{t('auth.ssnHint')}</p>
           </div>
 
           {error && (

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { adminApi } from '../../api/admin.api';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import type { UserRole, UserStatus, LoginHistory } from '../../types/admin.types';
 import '../../styles/admin/MemberDetail.css';
 
@@ -14,6 +15,8 @@ export default function MemberDetail() {
 
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>('USER');
   const [rejectReason, setRejectReason] = useState('');
 
@@ -48,6 +51,7 @@ export default function MemberDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-user', id] });
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      setShowStatusModal(false);
     },
   });
 
@@ -59,17 +63,22 @@ export default function MemberDetail() {
   });
 
   const handleDelete = () => {
-    if (window.confirm(t('admin.confirmDelete'))) {
-      deleteMutation.mutate();
-    }
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    deleteMutation.mutate();
+    setShowDeleteModal(false);
   };
 
   const handleToggleStatus = () => {
+    setShowStatusModal(true);
+  };
+
+  const handleStatusConfirm = () => {
     if (!user) return;
     const newStatus: UserStatus = user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    if (window.confirm(t('admin.confirmStatusChange'))) {
-      statusMutation.mutate(newStatus);
-    }
+    statusMutation.mutate(newStatus);
   };
 
   const formatDate = (dateString?: string) => {
@@ -135,6 +144,10 @@ export default function MemberDetail() {
           <div className="info-item">
             <span className="label">{t('admin.address')}</span>
             <span className="value">{user.address || '-'}</span>
+          </div>
+          <div className="info-item">
+            <span className="label">{t('admin.ssn')}</span>
+            <span className="value">{user.ssnMasked || '-'}</span>
           </div>
           <div className="info-item">
             <span className="label">{t('admin.role')}</span>
@@ -255,16 +268,7 @@ export default function MemberDetail() {
                 />
                 {t('roles.admin')}
               </label>
-              <label>
-                <input
-                  type="radio"
-                  name="role"
-                  value="SYSTEM"
-                  checked={selectedRole === 'SYSTEM'}
-                  onChange={() => setSelectedRole('SYSTEM')}
-                />
-                {t('roles.system')}
-              </label>
+              {/* SYSTEM 역할은 DB로만 직접 설정 가능하므로 선택지에서 제외 */}
             </div>
             <div className="modal-buttons">
               <button
@@ -316,6 +320,30 @@ export default function MemberDetail() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirm Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title={t('admin.forceDelete')}
+        message={t('admin.confirmDelete')}
+        confirmText={t('admin.forceDelete')}
+        cancelText={t('common.cancel')}
+        variant="danger"
+      />
+
+      {/* Status Change Confirm Modal */}
+      <ConfirmModal
+        isOpen={showStatusModal}
+        onClose={() => setShowStatusModal(false)}
+        onConfirm={handleStatusConfirm}
+        title={user?.status === 'ACTIVE' ? t('admin.deactivate') : t('admin.activate')}
+        message={t('admin.confirmStatusChange')}
+        confirmText={t('common.confirm')}
+        cancelText={t('common.cancel')}
+        variant="warning"
+      />
     </div>
   );
 }
