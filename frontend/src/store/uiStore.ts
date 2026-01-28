@@ -11,6 +11,7 @@ interface UIState {
 
   openAuthModal: (mode: 'login' | 'register') => void;
   closeAuthModal: () => void;
+  setAuthModalMode: (mode: 'login' | 'register') => void;
   openUpbitConnectModal: () => void;
   closeUpbitConnectModal: () => void;
   setTheme: (theme: Theme) => void;
@@ -29,6 +30,8 @@ export const useUIStore = create<UIState>()(
         set({ isAuthModalOpen: true, authModalMode: mode }),
 
       closeAuthModal: () => set({ isAuthModalOpen: false }),
+
+      setAuthModalMode: (mode) => set({ authModalMode: mode }),
 
       openUpbitConnectModal: () => set({ isUpbitConnectModalOpen: true }),
 

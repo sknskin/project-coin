@@ -11,13 +11,16 @@ export class MenuService implements OnModuleInit {
   }
 
   async getMenus(userRole?: UserRole) {
+    // SYSTEM과 ADMIN은 모두 관리자 메뉴에 접근 가능
+    const isAdmin = userRole === 'ADMIN' || userRole === 'SYSTEM';
+
     const menus = await this.prisma.menu.findMany({
       where: {
         isActive: true,
         OR: [
           { requiredRole: null },
           ...(userRole ? [{ requiredRole: 'USER' as UserRole }] : []),
-          ...(userRole === 'ADMIN' ? [{ requiredRole: 'ADMIN' as UserRole }] : []),
+          ...(isAdmin ? [{ requiredRole: 'ADMIN' as UserRole }] : []),
         ],
       },
       orderBy: [{ depth: 'asc' }, { order: 'asc' }],

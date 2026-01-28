@@ -38,14 +38,15 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
       // 현재 포커스된 요소 저장
       previousActiveElement.current = document.activeElement;
 
-      // 스크롤바 너비 계산
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      // 현재 스크롤 위치 저장
+      const scrollY = window.scrollY;
+      document.body.dataset.scrollY = String(scrollY);
 
-      // HTML 요소에도 스타일 적용하여 레이아웃 시프트 방지
-      document.documentElement.style.overflow = 'hidden';
-      document.documentElement.style.paddingRight = `${scrollbarWidth}px`;
-      document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
+      // body를 fixed로 만들어 스크롤 방지
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflowY = 'scroll'; // 스크롤바 공간 유지
 
       document.addEventListener('keydown', handleEscape);
 
@@ -55,10 +56,17 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.documentElement.style.overflow = '';
-      document.documentElement.style.paddingRight = '';
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
+
+      // 저장된 스크롤 위치 복원
+      const scrollY = document.body.dataset.scrollY || '0';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflowY = '';
+      delete document.body.dataset.scrollY;
+
+      // 스크롤 위치 복원
+      window.scrollTo(0, parseInt(scrollY));
 
       // 모달 닫힐 때 이전 요소로 포커스 복원
       if (previousActiveElement.current instanceof HTMLElement) {

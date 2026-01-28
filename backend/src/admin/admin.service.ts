@@ -27,6 +27,7 @@ export class AdminService {
     if (filter.search) {
       where.OR = [
         { email: { contains: filter.search, mode: 'insensitive' } },
+        { username: { contains: filter.search, mode: 'insensitive' } },
         { nickname: { contains: filter.search, mode: 'insensitive' } },
         { name: { contains: filter.search, mode: 'insensitive' } },
       ];
@@ -37,6 +38,7 @@ export class AdminService {
       select: {
         id: true,
         email: true,
+        username: true,
         nickname: true,
         name: true,
         phone: true,
@@ -57,6 +59,7 @@ export class AdminService {
       select: {
         id: true,
         email: true,
+        username: true,
         nickname: true,
         name: true,
         phone: true,
@@ -102,6 +105,7 @@ export class AdminService {
       data: {
         isApproved: true,
         approvalStatus: ApprovalStatus.APPROVED,
+        status: UserStatus.ACTIVE, // 승인 시 계정 활성화
         approvedAt: new Date(),
         approvedBy: adminId,
         role: dto.role || UserRole.USER,

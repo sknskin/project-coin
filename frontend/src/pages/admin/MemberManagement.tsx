@@ -158,6 +158,7 @@ export default function MemberManagement() {
             <thead>
               <tr>
                 <th>{t('admin.email')}</th>
+                <th>{t('admin.username')}</th>
                 <th>{t('admin.nickname')}</th>
                 <th>{t('admin.role')}</th>
                 <th>{t('admin.status')}</th>
@@ -174,6 +175,7 @@ export default function MemberManagement() {
                   className="clickable-row"
                 >
                   <td>{user.email}</td>
+                  <td>{user.username}</td>
                   <td>{user.nickname || '-'}</td>
                   <td>{getRoleBadge(user.role)}</td>
                   <td>{getStatusBadge(user.status)}</td>

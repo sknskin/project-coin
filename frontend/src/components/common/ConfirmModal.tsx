@@ -11,6 +11,7 @@ interface ConfirmModalProps {
   cancelText?: string;
   isLoading?: boolean;
   variant?: 'default' | 'danger';
+  showCancel?: boolean;
 }
 
 export default function ConfirmModal({
@@ -23,6 +24,7 @@ export default function ConfirmModal({
   cancelText,
   isLoading = false,
   variant = 'default',
+  showCancel = true,
 }: ConfirmModalProps) {
   const { t } = useTranslation();
   const finalConfirmText = confirmText || t('common.confirm');
@@ -37,13 +39,15 @@ export default function ConfirmModal({
       <div className="space-y-4">
         <p className="text-gray-600 dark:text-gray-300">{message}</p>
         <div className="flex justify-end space-x-3">
-          <button
-            onClick={onClose}
-            disabled={isLoading}
-            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
-          >
-            {finalCancelText}
-          </button>
+          {showCancel && (
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+            >
+              {finalCancelText}
+            </button>
+          )}
           <button
             onClick={onConfirm}
             disabled={isLoading}

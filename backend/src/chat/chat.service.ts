@@ -230,11 +230,12 @@ export class ChatService {
       ],
     });
 
-    // Ensure ADMIN users come first (since ADMIN < USER alphabetically)
+    // 관리자 역할 (SYSTEM, ADMIN)을 먼저 표시
+    const roleOrder = { SYSTEM: 0, ADMIN: 1, USER: 2 };
     return users.sort((a, b) => {
-      if (a.role === 'ADMIN' && b.role !== 'ADMIN') return -1;
-      if (a.role !== 'ADMIN' && b.role === 'ADMIN') return 1;
-      return 0;
+      const orderA = roleOrder[a.role] ?? 3;
+      const orderB = roleOrder[b.role] ?? 3;
+      return orderA - orderB;
     });
   }
 

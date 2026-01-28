@@ -5,9 +5,10 @@ export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export interface AdminUser {
   id: string;
   email: string;
+  username: string;
   nickname: string | null;
-  name: string | null;
-  phone: string | null;
+  name: string;
+  phone: string;
   address?: string | null;
   role: UserRole;
   status: UserStatus;

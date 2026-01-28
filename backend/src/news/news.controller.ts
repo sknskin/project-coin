@@ -1,5 +1,8 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/common';
 import { NewsService } from './news.service';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard, Roles } from '../common/guards/roles.guard';
+import { UserRole } from '@prisma/client';
 
 @Controller('news')
 export class NewsController {
@@ -16,5 +19,13 @@ export class NewsController {
   @Get(':id')
   getNewsById(@Param('id') id: string) {
     return this.newsService.getNewsById(id);
+  }
+
+  @Post('scrape')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async manualScrape() {
+    await this.newsService.scrapeNews();
+    return { success: true, message: 'News scraping completed' };
   }
 }

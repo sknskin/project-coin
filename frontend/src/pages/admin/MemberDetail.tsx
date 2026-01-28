@@ -117,8 +117,24 @@ export default function MemberDetail() {
             <span className="value">{user.email}</span>
           </div>
           <div className="info-item">
+            <span className="label">{t('admin.username')}</span>
+            <span className="value">{user.username}</span>
+          </div>
+          <div className="info-item">
+            <span className="label">{t('admin.name')}</span>
+            <span className="value">{user.name}</span>
+          </div>
+          <div className="info-item">
             <span className="label">{t('admin.nickname')}</span>
             <span className="value">{user.nickname || '-'}</span>
+          </div>
+          <div className="info-item">
+            <span className="label">{t('admin.phone')}</span>
+            <span className="value">{user.phone || '-'}</span>
+          </div>
+          <div className="info-item">
+            <span className="label">{t('admin.address')}</span>
+            <span className="value">{user.address || '-'}</span>
           </div>
           <div className="info-item">
             <span className="label">{t('admin.role')}</span>
@@ -238,6 +254,16 @@ export default function MemberDetail() {
                   onChange={() => setSelectedRole('ADMIN')}
                 />
                 {t('roles.admin')}
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="role"
+                  value="SYSTEM"
+                  checked={selectedRole === 'SYSTEM'}
+                  onChange={() => setSelectedRole('SYSTEM')}
+                />
+                {t('roles.system')}
               </label>
             </div>
             <div className="modal-buttons">

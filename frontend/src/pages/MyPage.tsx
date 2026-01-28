@@ -72,8 +72,21 @@ export default function MyPage() {
       setError(t('mypage.passwordMismatch'));
       return;
     }
-    if (passwords.newPassword.length < 6) {
+    if (passwords.newPassword.length < 10) {
       setError(t('mypage.passwordTooShort'));
+      return;
+    }
+    // 비밀번호 복잡성 검증
+    if (!/[A-Za-z]/.test(passwords.newPassword)) {
+      setError(t('auth.passwordNoLetter'));
+      return;
+    }
+    if (!/\d/.test(passwords.newPassword)) {
+      setError(t('auth.passwordNoNumber'));
+      return;
+    }
+    if (!/[@$!%*#?&]/.test(passwords.newPassword)) {
+      setError(t('auth.passwordNoSpecial'));
       return;
     }
     changePasswordMutation.mutate({
@@ -132,6 +145,16 @@ export default function MyPage() {
         </div>
 
         <div className="profile-item">
+          <span className="label">{t('mypage.username')}</span>
+          <span className="value">{profile?.username}</span>
+        </div>
+
+        <div className="profile-item">
+          <span className="label">{t('mypage.name')}</span>
+          <span className="value">{profile?.name}</span>
+        </div>
+
+        <div className="profile-item">
           <span className="label">{t('mypage.nickname')}</span>
           {isEditing ? (
             <input
@@ -144,6 +167,16 @@ export default function MyPage() {
           ) : (
             <span className="value">{profile?.nickname || '-'}</span>
           )}
+        </div>
+
+        <div className="profile-item">
+          <span className="label">{t('mypage.phone')}</span>
+          <span className="value">{profile?.phone}</span>
+        </div>
+
+        <div className="profile-item">
+          <span className="label">{t('mypage.address')}</span>
+          <span className="value">{profile?.address}</span>
         </div>
 
         <div className="profile-item">

@@ -6,6 +6,35 @@
   --color-rise: #ef4444;
   --color-fall: #3b82f6;
   --color-even: #6b7280;
+
+  /* Light theme variables */
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  --border-color: #e5e7eb;
+  --primary-color: #3b82f6;
+  --primary-color-dark: #2563eb;
+  --secondary-bg: #f3f4f6;
+  --hover-bg: #e5e7eb;
+  --error-color: #ef4444;
+  --success-color: #22c55e;
+}
+
+.dark {
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --card-bg: #1f2937;
+  --input-bg: #374151;
+  --border-color: #4b5563;
+  --primary-color: #3b82f6;
+  --primary-color-dark: #2563eb;
+  --secondary-bg: #374151;
+  --hover-bg: #4b5563;
+  --error-color: #f87171;
+  --success-color: #4ade80;
 }
 
 body {
@@ -48,17 +77,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Prevent layout shift when modal opens */
-html {
-  scrollbar-gutter: stable;
-}
-
 /* Prevent horizontal scroll */
 html, body {
   overflow-x: hidden;
-}
-
-/* Fixed elements should also receive padding when scrollbar is hidden */
-html:has(body[style*="overflow: hidden"]) .fixed-header {
-  padding-right: inherit;
 }

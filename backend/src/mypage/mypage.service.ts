@@ -13,6 +13,7 @@ export class MyPageService {
       select: {
         id: true,
         email: true,
+        username: true,
         nickname: true,
         name: true,
         phone: true,
@@ -40,12 +41,15 @@ export class MyPageService {
       select: {
         id: true,
         email: true,
+        username: true,
         nickname: true,
         name: true,
         phone: true,
         address: true,
         role: true,
         status: true,
+        approvalStatus: true,
+        isApproved: true,
         updatedAt: true,
       },
     });

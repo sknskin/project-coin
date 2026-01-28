@@ -25,6 +25,19 @@ export class RolesGuard implements CanActivate {
     }
 
     const { user } = context.switchToHttp().getRequest();
+
+    // SYSTEM 역할은 모든 권한을 가짐 (ADMIN 포함)
+    if (user.role === UserRole.SYSTEM) {
+      return true;
+    }
+
+    // ADMIN 역할은 ADMIN과 USER 권한을 가짐
+    if (user.role === UserRole.ADMIN) {
+      return requiredRoles.some(
+        (role) => role === UserRole.ADMIN || role === UserRole.USER,
+      );
+    }
+
     return requiredRoles.includes(user.role);
   }
 }

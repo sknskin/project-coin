@@ -54,29 +54,33 @@ export default function CoinInfo() {
       <p className="page-description">{t('news.description')}</p>
 
       <div className="news-list">
-        {newsData?.news.map((news: CryptoNews) => (
-          <article
-            key={news.id}
-            className="news-card"
-            onClick={() => handleNewsClick(news)}
-          >
-            {news.imageUrl && (
-              <div className="news-image">
-                <img src={news.imageUrl} alt={news.title} />
-              </div>
-            )}
-            <div className="news-content">
-              <h2 className="news-title">{news.title}</h2>
-              {news.summary && (
-                <p className="news-summary">{news.summary}</p>
+        {(!newsData?.news || newsData.news.length === 0) ? (
+          <div className="no-news">{t('news.noNews')}</div>
+        ) : (
+          newsData.news.map((news: CryptoNews) => (
+            <article
+              key={news.id}
+              className="news-card"
+              onClick={() => handleNewsClick(news)}
+            >
+              {news.imageUrl && (
+                <div className="news-image">
+                  <img src={news.imageUrl} alt={news.title} />
+                </div>
               )}
-              <div className="news-meta">
-                <span className="news-source">{news.sourceName}</span>
-                <span className="news-date">{formatDate(news.publishedAt)}</span>
+              <div className="news-content">
+                <h2 className="news-title">{news.title}</h2>
+                {news.summary && (
+                  <p className="news-summary">{news.summary}</p>
+                )}
+                <div className="news-meta">
+                  <span className="news-source">{news.sourceName}</span>
+                  <span className="news-date">{formatDate(news.publishedAt)}</span>
+                </div>
               </div>
-            </div>
-          </article>
-        ))}
+            </article>
+          ))
+        )}
       </div>
 
       {newsData && newsData.totalPages > 1 && (

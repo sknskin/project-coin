@@ -5,6 +5,7 @@ import {
   UTCTimestamp,
 } from 'lightweight-charts';
 import type { Candle } from '../../types';
+import { useUIStore } from '../../store/uiStore';
 
 interface CoinChartProps {
   candles: Candle[];
@@ -17,6 +18,25 @@ export default function CoinChart({
 }: CoinChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
+  const theme = useUIStore((state) => state.theme);
+
+  // 테마별 차트 색상 설정
+  const chartColors = {
+    light: {
+      background: '#ffffff',
+      textColor: '#333333',
+      gridColor: '#f0f0f0',
+      borderColor: '#e0e0e0',
+    },
+    dark: {
+      background: '#1f2937', // gray-800
+      textColor: '#e5e7eb', // gray-200
+      gridColor: '#374151', // gray-700
+      borderColor: '#4b5563', // gray-600
+    },
+  };
+
+  const colors = chartColors[theme];
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -25,18 +45,18 @@ export default function CoinChart({
       width: chartContainerRef.current.clientWidth,
       height,
       layout: {
-        background: { color: '#ffffff' },
-        textColor: '#333',
+        background: { color: colors.background },
+        textColor: colors.textColor,
       },
       grid: {
-        vertLines: { color: '#f0f0f0' },
-        horzLines: { color: '#f0f0f0' },
+        vertLines: { color: colors.gridColor },
+        horzLines: { color: colors.gridColor },
       },
       rightPriceScale: {
-        borderColor: '#e0e0e0',
+        borderColor: colors.borderColor,
       },
       timeScale: {
-        borderColor: '#e0e0e0',
+        borderColor: colors.borderColor,
         timeVisible: true,
       },
       crosshair: {
@@ -87,7 +107,7 @@ export default function CoinChart({
       window.removeEventListener('resize', handleResize);
       chart.remove();
     };
-  }, [candles, height]);
+  }, [candles, height, colors]);
 
   return <div ref={chartContainerRef} className="w-full" />;
 }

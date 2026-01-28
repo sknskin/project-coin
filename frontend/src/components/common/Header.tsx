@@ -33,6 +33,7 @@ export default function Header() {
   const handleLogoutConfirm = () => {
     logout();
     setIsLogoutModalOpen(false);
+    navigate('/coins');
   };
 
   const handleNicknameClick = () => {
@@ -90,7 +91,7 @@ export default function Header() {
                     onClick={handleNicknameClick}
                     className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors cursor-pointer"
                   >
-                    {user?.nickname || user?.email}{t('auth.userSuffix')}
+                    {user?.nickname || user?.name || user?.email}{t('auth.userSuffix')}
                   </button>
                   <span
                     className={`font-mono tabular-nums px-2 py-0.5 rounded ${

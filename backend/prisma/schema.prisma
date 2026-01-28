@@ -10,6 +10,7 @@ datasource db {
 enum UserRole {
   USER
   ADMIN
+  SYSTEM
 }
 
 enum UserStatus {
@@ -26,13 +27,14 @@ enum ApprovalStatus {
 model User {
   id             String         @id @default(uuid())
   email          String         @unique
+  username       String         @unique              // 아이디
   passwordHash   String         @map("password_hash")
-  nickname       String?
-  name           String?        // 성명
-  phone          String?        // 연락처
-  address        String?        // 주소
+  nickname       String?        @unique              // 닉네임 (선택, 고유)
+  name           String                              // 성명 (필수)
+  phone          String                              // 연락처 (필수)
+  address        String                              // 주소 (필수)
   role           UserRole       @default(USER)
-  status         UserStatus     @default(ACTIVE)
+  status         UserStatus     @default(INACTIVE)   // 승인 전까지 비활성화
   isApproved     Boolean        @default(false) @map("is_approved")
   approvalStatus ApprovalStatus @default(PENDING) @map("approval_status")
   approvedAt     DateTime?      @map("approved_at")

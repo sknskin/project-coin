@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import axios from 'axios';
@@ -14,10 +14,19 @@ interface ScrapedNews {
 }
 
 @Injectable()
-export class NewsService {
+export class NewsService implements OnModuleInit {
   private logger = new Logger('NewsService');
 
   constructor(private prisma: PrismaService) {}
+
+  async onModuleInit() {
+    // 서버 시작 시 뉴스가 없으면 자동으로 수집
+    const count = await this.prisma.cryptoNews.count();
+    if (count === 0) {
+      this.logger.log('No news found, starting initial scrape...');
+      await this.scrapeNews();
+    }
+  }
 
   @Cron(CronExpression.EVERY_HOUR)
   async scrapeNews() {

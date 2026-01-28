@@ -2,7 +2,7 @@ export interface ChatUser {
   id: string;
   email: string;
   nickname: string | null;
-  role?: 'ADMIN' | 'USER';
+  role?: 'ADMIN' | 'USER' | 'SYSTEM';
 }
 
 export interface Message {
