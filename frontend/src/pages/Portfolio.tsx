@@ -139,8 +139,11 @@ export default function Portfolio() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="mb-0">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('portfolio.title')}</h1>
+        <div className="flex items-center justify-between mt-1 min-h-[36px]">
+          <p className="text-gray-600 dark:text-gray-400">{t('portfolio.subtitle')}</p>
+        </div>
       </div>
 
       <PortfolioSummary portfolio={portfolio} />

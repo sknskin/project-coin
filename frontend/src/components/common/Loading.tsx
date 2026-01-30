@@ -13,7 +13,7 @@ export default function Loading({ size = 'md', className = '' }: LoadingProps) {
   return (
     <div className={`flex items-center justify-center ${className}`}>
       <div
-        className={`${sizeClasses[size]} animate-spin rounded-full border-2 border-gray-300 border-t-primary-600`}
+        className={`${sizeClasses[size]} animate-spin rounded-full border-2 border-gray-300 dark:border-gray-600 border-t-primary-600`}
       />
     </div>
   );

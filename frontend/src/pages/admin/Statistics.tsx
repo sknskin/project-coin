@@ -103,7 +103,12 @@ export default function Statistics() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('admin.statistics')}</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('admin.statistics')}</h1>
+        <div className="flex items-center justify-between mt-1 min-h-[36px]">
+          <p className="text-gray-600 dark:text-gray-400">{t('admin.statisticsSubtitle')}</p>
+        </div>
+      </div>
 
       {/* Real-time Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

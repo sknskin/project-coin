@@ -65,8 +65,8 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             {/* 테마/언어 토글을 로고 왼쪽에 배치 */}
             <div className="flex items-center space-x-1">
-              <ThemeToggle />
               <LanguageToggle />
+              <ThemeToggle />
             </div>
             <Link to="/" className="text-xl font-bold text-primary-600 dark:text-primary-400">
               Project Coin

@@ -174,7 +174,12 @@ export default function MemberManagement() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('admin.memberManagement')}</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('admin.memberManagement')}</h1>
+        <div className="flex items-center justify-between mt-1 min-h-[36px]">
+          <p className="text-gray-600 dark:text-gray-400">{t('admin.memberManagementSubtitle')}</p>
+        </div>
+      </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
         <div className="flex flex-wrap gap-4 mb-4">

@@ -138,14 +138,19 @@ export default function MemberDetail() {
 
   return (
     <div>
-      <div className="flex items-center gap-4 mb-6">
-        <button
-          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          onClick={() => navigate('/admin/members')}
-        >
-          &larr; {t('common.back')}
-        </button>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('admin.memberDetail')}</h1>
+      <div className="mb-6">
+        <div className="flex items-center gap-4">
+          <button
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            onClick={() => navigate('/admin/members')}
+          >
+            &larr; {t('common.back')}
+          </button>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('admin.memberDetail')}</h1>
+        </div>
+        <div className="flex items-center justify-between mt-1 min-h-[36px]">
+          <p className="text-gray-600 dark:text-gray-400">{user.email}</p>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">

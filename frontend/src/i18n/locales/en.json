@@ -97,6 +97,7 @@
   },
   "portfolio": {
     "title": "My Portfolio",
+    "subtitle": "Your coin holdings and profit/loss via Upbit API.",
     "connectRequired": "Upbit Connection Required",
     "connectDescription": "You need to connect your Upbit API to view your portfolio.",
     "connect": "Connect Upbit",
@@ -152,7 +153,9 @@
   },
   "admin": {
     "memberManagement": "Member Management",
+    "memberManagementSubtitle": "View member list and manage approvals/roles.",
     "statistics": "Statistics",
+    "statisticsSubtitle": "Real-time visitor and usage statistics.",
     "memberDetail": "Member Detail",
     "basicInfo": "Basic Information",
     "email": "Email",
@@ -193,6 +196,7 @@
     "loginHistory": "Login History"
   },
   "mypage": {
+    "subtitle": "View and manage your account information.",
     "accountInfo": "Account Information",
     "email": "Email",
     "username": "Username",

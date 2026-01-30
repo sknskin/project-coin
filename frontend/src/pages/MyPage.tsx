@@ -136,7 +136,12 @@ export default function MyPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('menu.mypage')}</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('menu.mypage')}</h1>
+        <div className="flex items-center justify-between mt-1 min-h-[36px]">
+          <p className="text-gray-600 dark:text-gray-400">{t('mypage.subtitle')}</p>
+        </div>
+      </div>
 
       {success && (
         <div className="mb-4 p-3 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 rounded-lg text-sm">

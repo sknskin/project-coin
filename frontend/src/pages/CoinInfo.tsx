@@ -51,7 +51,7 @@ export default function CoinInfo() {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('menu.coinNews')}</h1>
-        <div className="flex items-center justify-between mt-1">
+        <div className="flex items-center justify-between mt-1 min-h-[36px]">
           <p className="text-gray-600 dark:text-gray-400">{t('news.description')}</p>
           <select
             value={limit}
@@ -59,7 +59,7 @@ export default function CoinInfo() {
               setLimit(Number(e.target.value));
               setPage(1);
             }}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+            className="w-36 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
           >
             <option value={10}>{t('common.viewPerPage', { count: 10 })}</option>
             <option value={20}>{t('common.viewPerPage', { count: 20 })}</option>

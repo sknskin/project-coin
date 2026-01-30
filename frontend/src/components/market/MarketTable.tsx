@@ -7,12 +7,14 @@ import type { Market } from '../../types';
 
 interface MarketTableProps {
   markets: Market[];
+  page?: number;
+  pageSize?: number;
 }
 
 type SortKey = 'name' | 'price' | 'change' | 'volume';
 type SortDirection = 'asc' | 'desc' | 'none';
 
-export default function MarketTable({ markets }: MarketTableProps) {
+export default function MarketTable({ markets, page, pageSize }: MarketTableProps) {
   const { t, i18n } = useTranslation();
   const tickers = useMarketStore((state) => state.tickers);
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
@@ -113,6 +115,14 @@ export default function MarketTable({ markets }: MarketTableProps) {
     });
   }, [markets, tickers, sortKey, sortDirection, i18n.language]);
 
+  const displayedMarkets = useMemo(() => {
+    if (page && pageSize) {
+      const start = (page - 1) * pageSize;
+      return sortedMarkets.slice(start, start + pageSize);
+    }
+    return sortedMarkets;
+  }, [sortedMarkets, page, pageSize]);
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
       <table className="w-full">
@@ -149,7 +159,7 @@ export default function MarketTable({ markets }: MarketTableProps) {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-          {sortedMarkets.map(({ market, ticker }) => {
+          {displayedMarkets.map(({ market, ticker }) => {
             const change = ticker?.change || 'EVEN';
             const changeColor = getChangeColor(change);
 
