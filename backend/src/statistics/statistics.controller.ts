@@ -6,15 +6,26 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { IsString, IsOptional } from 'class-validator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard, Roles } from '../common/guards/roles.guard';
 import { StatisticsService } from './statistics.service';
 import { UserRole } from '@prisma/client';
 
 class TrackVisitorDto {
+  @IsString()
   sessionId: string;
+
+  @IsOptional()
+  @IsString()
   ipAddress?: string;
+
+  @IsOptional()
+  @IsString()
   userAgent?: string;
+
+  @IsOptional()
+  @IsString()
   referrer?: string;
 }
 

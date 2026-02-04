@@ -14,6 +14,7 @@ import { StatisticsModule } from './statistics/statistics.module';
 import { NewsModule } from './news/news.module';
 import { MenuModule } from './menu/menu.module';
 import { MyPageModule } from './mypage/mypage.module';
+import { AnnouncementModule } from './announcement/announcement.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { MyPageModule } from './mypage/mypage.module';
     NewsModule,
     MenuModule,
     MyPageModule,
+    AnnouncementModule,
   ],
 })
 export class AppModule {}

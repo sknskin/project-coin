@@ -55,7 +55,7 @@ export class MenuService implements OnModuleInit {
   async seedDefaultMenus() {
     const defaultMenus = [
       {
-        name: '시세',
+        name: '코인시세',
         nameEn: 'Price',
         path: '/coins',
         depth: 1,
@@ -71,11 +71,19 @@ export class MenuService implements OnModuleInit {
         requiredRole: null,
       },
       {
+        name: '공지사항',
+        nameEn: 'Announcements',
+        path: '/announcements',
+        depth: 1,
+        order: 3,
+        requiredRole: 'USER' as UserRole,
+      },
+      {
         name: '포트폴리오',
         nameEn: 'Portfolio',
         path: '/portfolio',
         depth: 1,
-        order: 3,
+        order: 4,
         requiredRole: 'USER' as UserRole,
       },
       {
@@ -83,7 +91,7 @@ export class MenuService implements OnModuleInit {
         nameEn: 'Members',
         path: '/admin/members',
         depth: 1,
-        order: 4,
+        order: 5,
         requiredRole: 'ADMIN' as UserRole,
       },
       {
@@ -91,19 +99,17 @@ export class MenuService implements OnModuleInit {
         nameEn: 'Statistics',
         path: '/admin/statistics',
         depth: 1,
-        order: 5,
+        order: 6,
         requiredRole: 'ADMIN' as UserRole,
       },
     ];
 
     for (const menu of defaultMenus) {
-      const existing = await this.prisma.menu.findUnique({
+      await this.prisma.menu.upsert({
         where: { path: menu.path },
+        update: { order: menu.order },
+        create: menu,
       });
-
-      if (!existing) {
-        await this.prisma.menu.create({ data: menu });
-      }
     }
   }
 }

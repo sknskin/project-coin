@@ -48,10 +48,10 @@ export default function NotificationIcon() {
 
   return (
     <>
-      <div ref={dropdownRef} className="relative">
+      <div ref={dropdownRef} className="relative z-10">
         <button
           onClick={() => setDropdownOpen(!isDropdownOpen)}
-          className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="relative overflow-visible p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
           aria-label="Notifications"
         >
           <svg
@@ -68,7 +68,7 @@ export default function NotificationIcon() {
             />
           </svg>
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+            <span className="absolute -top-1 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 pointer-events-none whitespace-nowrap">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}

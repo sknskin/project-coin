@@ -5,6 +5,9 @@ import Dashboard from './pages/Dashboard';
 import CoinDetail from './pages/CoinDetail';
 import Portfolio from './pages/Portfolio';
 import CoinInfo from './pages/CoinInfo';
+import AnnouncementList from './pages/AnnouncementList';
+import AnnouncementDetail from './pages/AnnouncementDetail';
+import AnnouncementForm from './pages/AnnouncementForm';
 import MyPage from './pages/MyPage';
 import MemberManagement from './pages/admin/MemberManagement';
 import MemberDetail from './pages/admin/MemberDetail';
@@ -42,6 +45,10 @@ function App() {
           <Route path="/coins" element={<Dashboard />} />
           <Route path="/coin/:marketCode" element={<CoinDetail />} />
           <Route path="/coin-info" element={<CoinInfo />} />
+          <Route path="/announcements" element={<ProtectedRoute><AnnouncementList /></ProtectedRoute>} />
+          <Route path="/announcements/new" element={<ProtectedRoute><AnnouncementForm /></ProtectedRoute>} />
+          <Route path="/announcements/:id" element={<ProtectedRoute><AnnouncementDetail /></ProtectedRoute>} />
+          <Route path="/announcements/:id/edit" element={<ProtectedRoute><AnnouncementForm /></ProtectedRoute>} />
           <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
           <Route path="/mypage" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
           <Route path="/admin/members" element={<AdminRoute><MemberManagement /></AdminRoute>} />
