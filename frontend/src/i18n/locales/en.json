@@ -260,7 +260,18 @@
     "justNow": "Just now",
     "minutesAgo": "{{count}} min ago",
     "hoursAgo": "{{count}} hours ago",
-    "daysAgo": "{{count}} days ago"
+    "daysAgo": "{{count}} days ago",
+    "typeSystem": "System",
+    "typePriceAlert": "Price Alert",
+    "typeChat": "Chat",
+    "typeAnnouncement": "Announcement",
+    "typePortfolio": "Portfolio",
+    "viewMember": "View Member",
+    "openChat": "Open Chat",
+    "viewCoin": "View Coin",
+    "viewPortfolio": "View Portfolio",
+    "attemptCount": "Attempts",
+    "times": " times"
   },
   "chat": {
     "title": "Chat",
@@ -278,6 +289,9 @@
     "yesterday": "Yesterday",
     "online": "Online",
     "offline": "Offline",
-    "typing": "Typing..."
+    "typing": "Typing...",
+    "groupNamePlaceholder": "Group chat name (optional)",
+    "createGroupChat": "Start group chat with {{count}} people",
+    "startChat": "Start Chat"
   }
 }

@@ -5,8 +5,8 @@ export const chatApi = {
   getConversations: () =>
     apiClient.get<Conversation[]>('/chat/conversations'),
 
-  createConversation: (participantIds: string[]) =>
-    apiClient.post<Conversation>('/chat/conversations', { participantIds }),
+  createConversation: (participantIds: string[], name?: string) =>
+    apiClient.post<Conversation>('/chat/conversations', { participantIds, name }),
 
   getMessages: (conversationId: string, cursor?: string, limit = 50) =>
     apiClient.get<Message[]>(`/chat/conversations/${conversationId}/messages`, {

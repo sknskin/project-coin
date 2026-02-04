@@ -361,7 +361,7 @@ export default function AuthModal() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-600">
+            <p className="text-sm text-red-600 whitespace-pre-line">
               {(error as Error).message || t('auth.error')}
             </p>
           )}
@@ -558,7 +558,7 @@ export default function AuthModal() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-600">
+            <p className="text-sm text-red-600 whitespace-pre-line">
               {(error as Error).message || t('auth.error')}
             </p>
           )}

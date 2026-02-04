@@ -260,7 +260,18 @@
     "justNow": "방금 전",
     "minutesAgo": "{{count}}분 전",
     "hoursAgo": "{{count}}시간 전",
-    "daysAgo": "{{count}}일 전"
+    "daysAgo": "{{count}}일 전",
+    "typeSystem": "시스템",
+    "typePriceAlert": "가격 알림",
+    "typeChat": "채팅",
+    "typeAnnouncement": "공지사항",
+    "typePortfolio": "포트폴리오",
+    "viewMember": "회원 확인",
+    "openChat": "채팅 열기",
+    "viewCoin": "코인 보기",
+    "viewPortfolio": "포트폴리오 보기",
+    "attemptCount": "시도 횟수",
+    "times": "회"
   },
   "chat": {
     "title": "채팅",
@@ -278,6 +289,9 @@
     "yesterday": "어제",
     "online": "온라인",
     "offline": "오프라인",
-    "typing": "입력 중..."
+    "typing": "입력 중...",
+    "groupNamePlaceholder": "그룹 채팅방 이름 (선택)",
+    "createGroupChat": "{{count}}명과 그룹 채팅 시작",
+    "startChat": "대화 시작"
   }
 }

@@ -19,20 +19,28 @@ export class ChatService {
     private chatGateway: ChatGateway,
   ) {}
 
-  async createConversation(creatorId: string, participantIds: string[]) {
+  async createConversation(
+    creatorId: string,
+    participantIds: string[],
+    name?: string,
+  ) {
     const allParticipantIds = [
       creatorId,
       ...participantIds.filter((id) => id !== creatorId),
     ];
 
+    const isGroup = allParticipantIds.length > 2;
+
     // 1:1 대화의 경우 기존 대화 확인
-    if (allParticipantIds.length === 2) {
+    if (!isGroup) {
       const existing = await this.findExistingConversation(allParticipantIds);
       if (existing) return existing;
     }
 
     const conversation = await this.prisma.conversation.create({
       data: {
+        name: isGroup ? name || null : null,
+        isGroup,
         participants: {
           create: allParticipantIds.map((userId) => ({ userId })),
         },
@@ -62,7 +70,11 @@ export class ChatService {
     return conversation;
   }
 
-  async sendMessage(conversationId: string, senderId: string, content: string) {
+  async sendMessage(
+    conversationId: string,
+    senderId: string,
+    content: string,
+  ) {
     // 참여자 확인
     const participant = await this.prisma.conversationParticipant.findUnique({
       where: {
@@ -87,11 +99,14 @@ export class ChatService {
       data: { updatedAt: new Date() },
     });
 
-    // 오프라인 사용자에게 알림 전송
+    // 읽지 않은 사람 수 계산 (발신자 제외)
     const participants = await this.prisma.conversationParticipant.findMany({
       where: { conversationId, userId: { not: senderId } },
     });
 
+    const unreadCount = participants.length;
+
+    // 오프라인 사용자에게 알림 전송
     for (const p of participants) {
       if (!this.chatGateway.isUserOnline(p.userId)) {
         // 같은 대화에서 아직 읽지 않은 CHAT 알림이 있으면 새로 생성하지 않음
@@ -118,7 +133,7 @@ export class ChatService {
       }
     }
 
-    return message;
+    return { ...message, unreadCount };
   }
 
   async getMessages(
@@ -151,7 +166,38 @@ export class ChatService {
       },
     });
 
-    return messages.reverse();
+    // 각 메시지별 읽지 않은 수 계산
+    const allParticipants =
+      await this.prisma.conversationParticipant.findMany({
+        where: { conversationId },
+        select: { userId: true, lastReadAt: true },
+      });
+
+    const otherParticipants = allParticipants.filter(
+      (p) => p.userId !== userId,
+    );
+
+    const messagesWithReadCount = messages.map((msg) => {
+      // 발신자와 조회자를 제외한 참여자 중 아직 안 읽은 사람 수
+      const relevantParticipants =
+        msg.senderId === userId
+          ? otherParticipants
+          : allParticipants.filter(
+              (p) => p.userId !== msg.senderId && p.userId !== userId,
+            );
+
+      const unreadCount = relevantParticipants.filter((p) => {
+        if (!p.lastReadAt) return true;
+        return new Date(p.lastReadAt) < new Date(msg.createdAt);
+      }).length;
+
+      return {
+        ...msg,
+        unreadCount,
+      };
+    });
+
+    return messagesWithReadCount.reverse();
   }
 
   async getUserConversations(userId: string) {
@@ -232,6 +278,20 @@ export class ChatService {
     });
   }
 
+  // 특정 대화의 메시지별 읽음 상태 계산 (읽음 처리 후 브로드캐스트용)
+  async getConversationReadStatus(conversationId: string) {
+    const participants =
+      await this.prisma.conversationParticipant.findMany({
+        where: { conversationId },
+        select: { userId: true, lastReadAt: true },
+      });
+
+    return participants.map((p) => ({
+      userId: p.userId,
+      lastReadAt: p.lastReadAt?.toISOString() || null,
+    }));
+  }
+
   async getAvailableUsers(currentUserId: string) {
     const users = await this.prisma.user.findMany({
       where: {
@@ -239,10 +299,7 @@ export class ChatService {
         isApproved: true,
       },
       select: { id: true, email: true, nickname: true, role: true },
-      orderBy: [
-        { role: 'asc' },  // ADMIN comes before USER alphabetically
-        { nickname: 'asc' },
-      ],
+      orderBy: [{ role: 'asc' }, { nickname: 'asc' }],
     });
 
     // 관리자 역할 (SYSTEM, ADMIN)을 먼저 표시
@@ -257,6 +314,7 @@ export class ChatService {
   private async findExistingConversation(participantIds: string[]) {
     const conversations = await this.prisma.conversation.findMany({
       where: {
+        isGroup: false,
         participants: {
           every: { userId: { in: participantIds } },
         },

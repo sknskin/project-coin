@@ -42,7 +42,8 @@ export const useNotificationStore = create<NotificationState>((set) => ({
           ? { ...n, isRead: true, readAt: new Date().toISOString() }
           : n
       ),
-      unreadCount: Math.max(0, state.unreadCount - 1),
+      // unreadCount는 서버가 WebSocket으로 정확한 값을 전송하므로 여기서 변경하지 않음
+      // (클라이언트에서 직접 감소시키면 WebSocket 이벤트와 중복 적용되는 레이스컨디션 발생)
     })),
 
   markAllAsRead: () =>

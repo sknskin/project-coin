@@ -73,6 +73,11 @@ export default function MessageInput({
     }
   };
 
+  // Auto-focus on mount
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
+
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {

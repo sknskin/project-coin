@@ -13,6 +13,7 @@ export interface Message {
   content: string;
   createdAt: string;
   isDeleted: boolean;
+  unreadCount?: number;
 }
 
 export interface ConversationParticipant {
@@ -26,6 +27,8 @@ export interface ConversationParticipant {
 
 export interface Conversation {
   id: string;
+  name: string | null;
+  isGroup: boolean;
   participants: ConversationParticipant[];
   messages: Message[];
   createdAt: string;

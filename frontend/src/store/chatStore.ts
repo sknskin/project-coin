@@ -54,6 +54,12 @@ interface ChatState {
   incrementUnreadCount: (conversationId: string) => void;
   getTotalUnreadCount: () => number;
   getConversationsWithUnreadCount: () => number;
+  updateMessageReadStatus: (
+    conversationId: string,
+    readUserId: string,
+    readAt: string,
+    readStatus: { userId: string; lastReadAt: string | null }[],
+  ) => void;
 
   // 온라인 상태
   setUserOnline: (userId: string, isOnline: boolean) => void;
@@ -210,6 +216,30 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const counts = get().unreadCounts;
     return Object.values(counts).filter((c) => c > 0).length;
   },
+
+  updateMessageReadStatus: (conversationId, readUserId, readAt, readStatus) =>
+    set((state) => {
+      const newMessages = new Map(state.messages);
+      const msgs = newMessages.get(conversationId);
+      if (!msgs) return state;
+
+      const updatedMsgs = msgs.map((msg) => {
+        if (msg.unreadCount === undefined) return msg;
+        // readStatus 기반으로 이 메시지를 아직 안 읽은 사람 수 계산 (발신자 제외)
+        const otherParticipants = readStatus.filter(
+          (p) => p.userId !== msg.senderId,
+        );
+        const unreadCount = otherParticipants.filter((p) => {
+          if (!p.lastReadAt) return true;
+          return new Date(p.lastReadAt) < new Date(msg.createdAt);
+        }).length;
+
+        return { ...msg, unreadCount };
+      });
+
+      newMessages.set(conversationId, updatedMsgs);
+      return { messages: newMessages };
+    }),
 
   setUserOnline: (userId, isOnline) =>
     set((state) => {

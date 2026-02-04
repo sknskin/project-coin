@@ -1,57 +1,24 @@
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { Notification } from '../../types/notification.types';
-import { useChatStore } from '../../store/chatStore';
 
 interface NotificationItemProps {
   notification: Notification;
   onMarkAsRead: (id: string) => void;
-  onClose: () => void;
+  onSelect: (notification: Notification) => void;
 }
 
 export default function NotificationItem({
   notification,
   onMarkAsRead,
-  onClose,
+  onSelect,
 }: NotificationItemProps) {
-  const navigate = useNavigate();
   const { t } = useTranslation();
-  const { openChat, setActiveConversation } = useChatStore();
 
   const handleClick = () => {
     if (!notification.isRead) {
       onMarkAsRead(notification.id);
     }
-
-    // 알림 타입에 따라 적절한 페이지로 이동
-    if (notification.data) {
-      switch (notification.type) {
-        case 'SYSTEM':
-          // 회원가입 요청 알림인 경우 회원 상세 페이지로 이동
-          if (notification.data.type === 'registration_request' && notification.data.userId) {
-            navigate(`/admin/members/${notification.data.userId}`);
-          }
-          break;
-        case 'PRICE_ALERT':
-          if (notification.data.marketCode) {
-            navigate(`/coin/${notification.data.marketCode}`);
-          }
-          break;
-        case 'PORTFOLIO':
-          navigate('/portfolio');
-          break;
-        case 'CHAT':
-          if (notification.data.conversationId) {
-            openChat();
-            setActiveConversation(notification.data.conversationId);
-          }
-          break;
-        default:
-          break;
-      }
-    }
-
-    onClose();
+    onSelect(notification);
   };
 
   const getIcon = () => {

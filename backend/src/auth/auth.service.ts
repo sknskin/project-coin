@@ -162,7 +162,7 @@ export class AuthService {
       const blockStatus = await this.checkLoginBlock(ipAddress);
       if (blockStatus.isBlocked) {
         throw new ForbiddenException({
-          message: `로그인 시도가 너무 많습니다. ${blockStatus.remainingMinutes}분 후에 다시 시도해주세요.`,
+          message: `로그인 시도가 너무 많습니다.\n${blockStatus.remainingMinutes}분 후에 다시 시도해주세요.`,
           code: 'LOGIN_BLOCKED',
           remainingMinutes: blockStatus.remainingMinutes,
         });
@@ -200,7 +200,7 @@ export class AuthService {
         if (attemptResult.attemptCount >= MAX_LOGIN_ATTEMPTS) {
           await this.notifyAdminsAboutLoginBlock(ipAddress, attemptResult.attemptCount);
           throw new ForbiddenException({
-            message: `로그인 시도가 너무 많습니다. ${BLOCK_DURATION_MINUTES}분 후에 다시 시도해주세요.`,
+            message: `로그인 시도가 너무 많습니다.\n${BLOCK_DURATION_MINUTES}분 후에 다시 시도해주세요.`,
             code: 'LOGIN_BLOCKED',
             remainingMinutes: BLOCK_DURATION_MINUTES,
           });
@@ -209,7 +209,7 @@ export class AuthService {
         // 3회 이상 실패 시 경고 메시지
         if (attemptResult.attemptCount >= WARNING_THRESHOLD) {
           throw new UnauthorizedException({
-            message: `로그인에 ${attemptResult.attemptCount}회 실패하였습니다. 5회 이상 실패하는 경우 로그인이 10분동안 제한됩니다.`,
+            message: `로그인에 ${attemptResult.attemptCount}회 실패하였습니다.\n5회 이상 실패하는 경우 로그인이 10분동안 제한됩니다.`,
             code: 'LOGIN_WARNING',
             failedCount: attemptResult.attemptCount,
           });

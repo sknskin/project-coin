@@ -144,12 +144,18 @@ export class ChatGateway
 
     await this.chatService.markConversationAsRead(payload.conversationId, user.id);
 
+    // 읽음 상태를 대화 참여자들에게 브로드캐스트
+    const readStatus = await this.chatService.getConversationReadStatus(
+      payload.conversationId,
+    );
+
     this.server
       .to(`conversation:${payload.conversationId}`)
       .emit('message:read', {
         conversationId: payload.conversationId,
         userId: user.id,
-        readAt: new Date(),
+        readAt: new Date().toISOString(),
+        readStatus,
       });
   }
 
@@ -189,7 +195,6 @@ export class ChatGateway
       const sockets = this.userSockets.get(userId);
       if (sockets) {
         for (const socketId of sockets) {
-          // this.server is the /chat namespace, use .in().socketsJoin() for namespace-safe join
           this.server.in(socketId).socketsJoin(`conversation:${conversationId}`);
         }
       }

@@ -4,12 +4,14 @@ import { useNotificationStore } from '../../store/notificationStore';
 import { notificationApi } from '../../api/notification.api';
 import NotificationItem from './NotificationItem';
 import Loading from '../common/Loading';
+import type { Notification } from '../../types/notification.types';
 
 interface NotificationDropdownProps {
   onClose: () => void;
+  onSelectNotification: (notification: Notification) => void;
 }
 
-export default function NotificationDropdown({ onClose }: NotificationDropdownProps) {
+export default function NotificationDropdown({ onClose, onSelectNotification }: NotificationDropdownProps) {
   const { t } = useTranslation();
   const {
     notifications,
@@ -38,8 +40,8 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
 
   const handleMarkAsRead = async (id: string) => {
     try {
-      await notificationApi.markAsRead(id);
       markAsRead(id);
+      await notificationApi.markAsRead(id);
     } catch (error) {
       console.error('Failed to mark as read:', error);
     }
@@ -47,11 +49,16 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
 
   const handleMarkAllAsRead = async () => {
     try {
-      await notificationApi.markAllAsRead();
       markAllAsRead();
+      await notificationApi.markAllAsRead();
     } catch (error) {
       console.error('Failed to mark all as read:', error);
     }
+  };
+
+  const handleSelectNotification = (notification: Notification) => {
+    onSelectNotification(notification);
+    onClose();
   };
 
   return (
@@ -101,7 +108,7 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
                 key={notification.id}
                 notification={notification}
                 onMarkAsRead={handleMarkAsRead}
-                onClose={onClose}
+                onSelect={handleSelectNotification}
               />
             ))}
           </div>

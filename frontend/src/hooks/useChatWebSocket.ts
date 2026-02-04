@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '../store/authStore';
 import { useChatStore } from '../store/chatStore';
+import { chatApi } from '../api/chat.api';
 import type { Message, Conversation } from '../types/chat.types';
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3001';
@@ -40,18 +41,36 @@ export function useChatWebSocket() {
 
     socket.on('connect', () => {
       console.log('Chat WebSocket connected');
+      // 연결 시 읽지 않은 메시지 수 로드
+      chatApi.getUnreadCounts().then((res) => {
+        useChatStore.getState().setUnreadCounts(res.data);
+      }).catch((err) => {
+        console.error('Failed to load unread counts:', err);
+      });
     });
 
     socket.on('message:new', (message: Message) => {
       const store = useChatStore.getState();
-      store.addMessage(message.conversationId, message);
+      let msg = message;
 
-      // 현재 보고 있는 대화가 아니고, 내가 보낸 메시지가 아니면 읽지 않은 카운트 증가
-      if (
-        message.conversationId !== activeConversationIdRef.current &&
-        message.senderId !== user?.id
-      ) {
-        store.incrementUnreadCount(message.conversationId);
+      if (message.senderId !== user?.id) {
+        if (message.conversationId === activeConversationIdRef.current) {
+          // 현재 보고 있는 대화에 새 메시지가 온 경우
+          // 본인은 이미 읽은 상태이므로 unreadCount에서 1 차감
+          if (msg.unreadCount !== undefined && msg.unreadCount > 0) {
+            msg = { ...msg, unreadCount: msg.unreadCount - 1 };
+          }
+          store.addMessage(msg.conversationId, msg);
+          // 즉시 읽음 처리
+          socket.emit('message:read', { conversationId: msg.conversationId });
+          store.markConversationAsRead(msg.conversationId);
+        } else {
+          store.addMessage(msg.conversationId, msg);
+          // 다른 대화의 메시지 → 읽지 않은 카운트 증가
+          store.incrementUnreadCount(msg.conversationId);
+        }
+      } else {
+        store.addMessage(msg.conversationId, msg);
       }
     });
 
@@ -63,13 +82,18 @@ export function useChatWebSocket() {
       'message:read',
       ({
         conversationId,
-        userId,
+        userId: readUserId,
+        readAt,
+        readStatus,
       }: {
         conversationId: string;
         userId: string;
         readAt: string;
+        readStatus: { userId: string; lastReadAt: string | null }[];
       }) => {
-        console.log(`User ${userId} read conversation ${conversationId}`);
+        // 읽음 상태 업데이트 - 메시지의 unreadCount 재계산
+        const store = useChatStore.getState();
+        store.updateMessageReadStatus(conversationId, readUserId, readAt, readStatus);
       }
     );
 

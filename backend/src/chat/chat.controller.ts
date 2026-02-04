@@ -43,6 +43,7 @@ export class ChatController {
     const conversation = await this.chatService.createConversation(
       req.user.id,
       dto.participantIds,
+      dto.name,
     );
 
     // 참여자들에게 새 대화 알림
