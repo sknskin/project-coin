@@ -15,7 +15,8 @@ export default function Pagination({
 }: PaginationProps) {
   const { t } = useTranslation();
 
-  if (totalPages <= 1) return null;
+  // 1페이지여도 페이징 표시 처리
+  // if (totalPages <= 1) return null;
 
   // 표시할 페이지 번호 계산
   const getPageNumbers = () => {
