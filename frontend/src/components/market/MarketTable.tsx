@@ -182,9 +182,18 @@ export default function MarketTable({ markets, page, pageSize }: MarketTableProp
                   </Link>
                 </td>
                 <td className={`px-4 py-3 text-right tabular-nums ${changeColor}`}>
+                  <Link
+                    to={`/coin/${market.market}`}
+                    className="flex flex-col"
+                  >
                   {ticker ? formatPrice(ticker.tradePrice) : '-'}
+                  </Link>
                 </td>
                 <td className={`px-4 py-3 text-right tabular-nums ${changeColor}`}>
+                  <Link
+                    to={`/coin/${market.market}`}
+                    className="flex flex-col"
+                  >
                   {ticker ? (
                     <div className="flex flex-col items-end">
                       <span>{formatPercent(ticker.signedChangeRate)}</span>
@@ -196,9 +205,15 @@ export default function MarketTable({ markets, page, pageSize }: MarketTableProp
                   ) : (
                     '-'
                   )}
+                  </Link>
                 </td>
                 <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-400 tabular-nums">
+                  <Link
+                    to={`/coin/${market.market}`}
+                    className="flex flex-col"
+                  >
                   {ticker ? formatVolume(ticker.accTradePrice24h) : '-'}
+                  </Link>
                 </td>
               </tr>
             );

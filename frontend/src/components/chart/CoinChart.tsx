@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import {
   createChart,
   IChartApi,
+  ISeriesApi,
   UTCTimestamp,
 } from 'lightweight-charts';
 import type { Candle } from '../../types';
@@ -18,9 +19,10 @@ export default function CoinChart({
 }: CoinChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
+  const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const isFirstDataLoadRef = useRef(true);
   const theme = useUIStore((state) => state.theme);
 
-  // 테마별 차트 색상 설정
   const chartColors = {
     light: {
       background: '#ffffff',
@@ -29,15 +31,30 @@ export default function CoinChart({
       borderColor: '#e0e0e0',
     },
     dark: {
-      background: '#1f2937', // gray-800
-      textColor: '#e5e7eb', // gray-200
-      gridColor: '#374151', // gray-700
-      borderColor: '#4b5563', // gray-600
+      background: '#1f2937',
+      textColor: '#e5e7eb',
+      gridColor: '#374151',
+      borderColor: '#4b5563',
     },
   };
 
   const colors = chartColors[theme];
 
+  const formatCandles = useCallback((rawCandles: Candle[]) => {
+    return rawCandles
+      .map((candle) => ({
+        time: Math.floor(
+          new Date(candle.candle_date_time_kst).getTime() / 1000
+        ) as UTCTimestamp,
+        open: candle.opening_price,
+        high: candle.high_price,
+        low: candle.low_price,
+        close: candle.trade_price,
+      }))
+      .sort((a, b) => a.time - b.time);
+  }, []);
+
+  // Effect 1: 차트 인스턴스 생성 (마운트/높이 변경 시에만)
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
@@ -64,9 +81,6 @@ export default function CoinChart({
       },
     });
 
-    chartRef.current = chart;
-
-    // ✅ 캔들 시리즈 생성 (v4 정식 API)
     const candlestickSeries = chart.addCandlestickSeries({
       upColor: '#ef4444',
       downColor: '#3b82f6',
@@ -76,26 +90,12 @@ export default function CoinChart({
       wickDownColor: '#3b82f6',
     });
 
-    // ✅ 데이터 포맷 (UTCTimestamp 캐스팅)
-    const formattedData = candles
-      .map((candle) => ({
-        time: Math.floor(
-          new Date(candle.candle_date_time_kst).getTime() / 1000
-        ) as UTCTimestamp,
-        open: candle.opening_price,
-        high: candle.high_price,
-        low: candle.low_price,
-        close: candle.trade_price,
-      }))
-      .sort((a, b) => a.time - b.time);
+    chartRef.current = chart;
+    seriesRef.current = candlestickSeries;
+    isFirstDataLoadRef.current = true;
 
-    candlestickSeries.setData(formattedData);
-    chart.timeScale().fitContent();
-
-    // ✅ 리사이즈 대응
     const handleResize = () => {
       if (!chartContainerRef.current || !chartRef.current) return;
-
       chartRef.current.applyOptions({
         width: chartContainerRef.current.clientWidth,
       });
@@ -106,8 +106,40 @@ export default function CoinChart({
     return () => {
       window.removeEventListener('resize', handleResize);
       chart.remove();
+      chartRef.current = null;
+      seriesRef.current = null;
     };
-  }, [candles, height, colors]);
+  }, [height]);
+
+  // Effect 2: 테마 변경 시 차트 옵션만 업데이트 (차트 재생성 없이)
+  useEffect(() => {
+    if (!chartRef.current) return;
+    chartRef.current.applyOptions({
+      layout: {
+        background: { color: colors.background },
+        textColor: colors.textColor,
+      },
+      grid: {
+        vertLines: { color: colors.gridColor },
+        horzLines: { color: colors.gridColor },
+      },
+      rightPriceScale: { borderColor: colors.borderColor },
+      timeScale: { borderColor: colors.borderColor },
+    });
+  }, [colors]);
+
+  // Effect 3: 데이터 업데이트 (줌/팬 상태 유지)
+  useEffect(() => {
+    if (!seriesRef.current || !candles || candles.length === 0) return;
+    const formattedData = formatCandles(candles);
+    seriesRef.current.setData(formattedData);
+
+    // 최초 데이터 로드 시에만 전체 표시
+    if (isFirstDataLoadRef.current && chartRef.current) {
+      chartRef.current.timeScale().fitContent();
+      isFirstDataLoadRef.current = false;
+    }
+  }, [candles, formatCandles]);
 
   return <div ref={chartContainerRef} className="w-full" />;
 }
