@@ -295,7 +295,7 @@ export default function AuthModal() {
       isOpen={isAuthModalOpen}
       onClose={closeAuthModal}
       title={authModalMode === 'login' ? t('auth.login') : t('auth.register')}
-      size={authModalMode === 'register' ? 'lg' : 'md'}
+      size={authModalMode === 'register' ? 'xl' : 'md'}
     >
       {authModalMode === 'login' ? (
         <form onSubmit={handleLoginSubmit} className="space-y-4">
