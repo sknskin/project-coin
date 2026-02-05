@@ -207,7 +207,10 @@
     "rejectedAt": "거절 일시",
     "rejectReason": "거절 사유",
     "accessDeny": "시스템 관리자 계정에 접근할 권한이 없습니다.",
-    "loginHistory": "로그인 기록"
+    "loginHistory": "로그인 기록",
+    "loginHistoryChart": "최근 30일 로그인 추이",
+    "loginSuccess": "성공",
+    "loginFailed": "실패"
   },
   "mypage": {
     "subtitle": "내 계정 정보 확인 및 프로필을 관리합니다.",

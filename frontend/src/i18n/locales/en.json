@@ -147,13 +147,13 @@
   },
   "menu": {
     "coinInfo": "Coin News",
-    "coinNews": "Coin News",
+    "coinNews": "Coin",
     "mypage": "My Page"
   },
   "roles": {
     "user": "User",
     "admin": "Admin",
-    "system": "System Admin"
+    "system": "System"
   },
   "status": {
     "active": "Active",
@@ -207,7 +207,10 @@
     "rejectedAt": "Rejected At",
     "rejectReason": "Rejection Reason",
     "accessDeny": "Access denied. System administrator privileges required.",
-    "loginHistory": "Login History"
+    "loginHistory": "Login History",
+    "loginHistoryChart": "Login Activity (Last 30 Days)",
+    "loginSuccess": "Success",
+    "loginFailed": "Failed"
   },
   "mypage": {
     "subtitle": "View and manage your account information.",

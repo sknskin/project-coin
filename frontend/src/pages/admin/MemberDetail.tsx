@@ -1,9 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { format, subDays, parseISO, startOfDay } from 'date-fns';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+} from 'recharts';
 import { adminApi } from '../../api/admin.api';
 import { useAuthStore } from '../../store/authStore';
+import { useChartColors } from '../../components/statistics/useChartColors';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import type { UserRole, UserStatus, LoginHistory } from '../../types/admin.types';
 
@@ -20,6 +25,7 @@ export default function MemberDetail() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>('USER');
   const [rejectReason, setRejectReason] = useState('');
+  const chartColors = useChartColors();
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-user', id],
@@ -29,6 +35,46 @@ export default function MemberDetail() {
 
   const userData = data?.data;
   const isSystem = user?.role === 'SYSTEM';
+
+  // Process login history for chart (last 30 days)
+  const loginChartData = useMemo(() => {
+    if (!userData?.loginHistories || userData.loginHistories.length === 0) {
+      return [];
+    }
+
+    const today = startOfDay(new Date());
+    const days = 30;
+    const dateMap = new Map<string, { success: number; failed: number }>();
+
+    // Initialize all dates with 0
+    for (let i = days - 1; i >= 0; i--) {
+      const date = format(subDays(today, i), 'MM/dd');
+      dateMap.set(date, { success: 0, failed: 0 });
+    }
+
+    // Count logins per day
+    userData.loginHistories.forEach((history: LoginHistory) => {
+      const loginDate = startOfDay(parseISO(history.loginAt));
+      const diffDays = Math.floor((today.getTime() - loginDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (diffDays >= 0 && diffDays < days) {
+        const dateKey = format(loginDate, 'MM/dd');
+        const current = dateMap.get(dateKey) || { success: 0, failed: 0 };
+        if (history.isSuccess) {
+          current.success++;
+        } else {
+          current.failed++;
+        }
+        dateMap.set(dateKey, current);
+      }
+    });
+
+    return Array.from(dateMap.entries()).map(([date, counts]) => ({
+      date,
+      success: counts.success,
+      failed: counts.failed,
+    }));
+  }, [userData?.loginHistories]);
 
   const approveMutation = useMutation({
     mutationFn: () => adminApi.approveUser(id!, selectedRole),
@@ -277,15 +323,6 @@ export default function MemberDetail() {
                 </button>
               )}
 
-              {userData.approvalStatus === 'REJECTED' && (
-                <button
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
-                    onClick={() => setShowApprovalModal(true)}
-                  >
-                    {t('admin.approve')}
-                  </button>
-              )}
-
               <button
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
                 onClick={handleDelete}
@@ -306,10 +343,60 @@ export default function MemberDetail() {
       {userData.loginHistories && userData.loginHistories.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('admin.loginHistory')}</h2>
+
+          {/* Login History Chart */}
+          {loginChartData.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
+                {t('admin.loginHistoryChart')}
+              </h3>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={loginChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                  <XAxis
+                    dataKey="date"
+                    stroke={chartColors.axis}
+                    tick={{ fontSize: 11 }}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis stroke={chartColors.axis} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: chartColors.tooltipBg,
+                      border: `1px solid ${chartColors.tooltipBorder}`,
+                      borderRadius: '8px',
+                      color: chartColors.tooltipText,
+                    }}
+                    labelStyle={{ color: chartColors.tooltipText }}
+                  />
+                  <Legend />
+                  <Bar
+                    dataKey="success"
+                    fill="#22c55e"
+                    name={t('admin.loginSuccess')}
+                    radius={[4, 4, 0, 0]}
+                    stackId="login"
+                  />
+                  <Bar
+                    dataKey="failed"
+                    fill="#ef4444"
+                    name={t('admin.loginFailed')}
+                    radius={[4, 4, 0, 0]}
+                    stackId="login"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Login History List */}
           <div className="space-y-2">
             {userData.loginHistories.slice(0, 10).map((history: LoginHistory, index: number) => (
               <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 text-sm">
-                <span className="text-gray-900 dark:text-white">{formatDate(history.loginAt)}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${history.isSuccess ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <span className="text-gray-900 dark:text-white">{formatDate(history.loginAt)}</span>
+                </div>
                 <span className="text-gray-500 dark:text-gray-400">{history.ipAddress || '-'}</span>
               </div>
             ))}
