@@ -17,7 +17,8 @@
     "feature4": "Upbit API integration",
     "feature5": "Portfolio view (holdings, profit/loss)",
     "feature6": "Real-time message (WebSocket)",
-    "feature7": "Statistics view",
+    "feature7": "News web crawling (Scraping)",
+    "feature8": "Statistics view",
     "techStack": "Tech Stack",
     "swagger": "Swagger Location",
     "github": "GitHub Repository",
@@ -116,7 +117,13 @@
     "apiKeyDescription": "Please enter the API key issued from Upbit.",
     "getApiKey": "Get API Key",
     "accessKey": "Access Key",
-    "secretKey": "Secret Key"
+    "secretKey": "Secret Key",
+    "editApiKey": "Edit API Key",
+    "editApiKeyDescription": "Enter your new API key. The existing key will be deleted.",
+    "updateApiKey": "Update",
+    "disconnect": "Disconnect",
+    "disconnectTitle": "Disconnect",
+    "disconnectConfirm": "Are you sure you want to disconnect Upbit? You will no longer be able to view your portfolio."
   },
   "session": {
     "warningTitle": "Session Expiring",

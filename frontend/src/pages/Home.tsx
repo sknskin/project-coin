@@ -64,6 +64,7 @@ export default function Home() {
           <li>{t('home.feature5')}</li>
           <li>{t('home.feature6')}</li>
           <li>{t('home.feature7')}</li>
+          <li>{t('home.feature8')}</li>
         </ul>
       </div>
 

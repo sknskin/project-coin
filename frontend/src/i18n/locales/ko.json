@@ -17,7 +17,8 @@
     "feature4": "업비트 API 연동",
     "feature5": "포트폴리오 조회 (보유 코인, 손익)",
     "feature6": "실시간 메신저 기능 (WebSocket)",
-    "feature7": "통계 조회",
+    "feature7": "뉴스 웹 크롤링 (Scraping)",
+    "feature8": "통계 조회",
     "techStack": "기술 스택",
     "swagger": "Swagger 주소",
     "github": "GitHub 저장소",
@@ -116,7 +117,13 @@
     "apiKeyDescription": "업비트에서 발급받은 API 키를 입력해주세요.",
     "getApiKey": "API 키 발급받기",
     "accessKey": "Access Key",
-    "secretKey": "Secret Key"
+    "secretKey": "Secret Key",
+    "editApiKey": "API 키 수정",
+    "editApiKeyDescription": "새 API 키를 입력해주세요. 기존 키는 삭제됩니다.",
+    "updateApiKey": "수정하기",
+    "disconnect": "연동 해제",
+    "disconnectTitle": "연동 해제",
+    "disconnectConfirm": "업비트 연동을 해제하시겠습니까? 포트폴리오 정보를 더 이상 확인할 수 없습니다."
   },
   "session": {
     "warningTitle": "세션 만료 경고",
