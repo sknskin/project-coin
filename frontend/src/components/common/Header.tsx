@@ -27,6 +27,17 @@ export default function Header() {
     fetchMenus();
   }, [fetchMenus, isAuthenticated]);
 
+  // 모바일 메뉴가 열려있을 때 화면 크기 변경 감지하여 닫기
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobileMenuOpen]);
+
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
   };
@@ -64,10 +75,10 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-14">
           <div className="flex items-center space-x-4">
-            {/* 햄버거 메뉴 버튼 (모바일) */}
+            {/* 햄버거 메뉴 버튼 (1024px 미만에서 표시) */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="lg:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? (
@@ -80,21 +91,22 @@ export default function Header() {
                 </svg>
               )}
             </button>
-            {/* 테마/언어 토글을 로고 왼쪽에 배치 */}
-            <div className="hidden sm:flex items-center space-x-1">
+            {/* 테마/언어 토글 (1024px 이상에서 표시) */}
+            <div className="hidden lg:flex items-center space-x-1">
               <LanguageToggle />
               <ThemeToggle />
             </div>
-            <Link to="/" className="text-xl font-bold text-primary-600 dark:text-primary-400">
+            <Link to="/" className="text-xl font-bold text-primary-600 dark:text-primary-400 whitespace-nowrap">
               Project Coin
             </Link>
-            <nav className="hidden md:flex space-x-6 ml-4">
+            {/* 데스크탑 네비게이션 (1024px 이상에서 표시) */}
+            <nav className="hidden lg:flex space-x-6 ml-4">
               {visibleMenus.map((menu) => (
                 menu.path && (
                   <Link
                     key={menu.id}
                     to={menu.path}
-                    className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-sm"
+                    className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-sm whitespace-nowrap"
                   >
                     {getMenuLabel(menu)}
                   </Link>
@@ -106,10 +118,11 @@ export default function Header() {
           <div className="flex items-center space-x-2">
             {isAuthenticated ? (
               <>
-                <div className="hidden sm:flex items-center space-x-2 text-sm">
+                {/* 사용자 정보 (1024px 이상에서 표시) */}
+                <div className="hidden lg:flex items-center space-x-2 text-sm">
                   <button
                     onClick={handleNicknameClick}
-                    className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors cursor-pointer"
+                    className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors cursor-pointer whitespace-nowrap"
                   >
                     {user?.nickname || user?.name || user?.email}{t('auth.userSuffix')}
                   </button>
@@ -129,7 +142,7 @@ export default function Header() {
                 </div>
                 <button
                   onClick={handleLogoutClick}
-                  className="hidden sm:block px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  className="hidden lg:block px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap"
                 >
                   {t('auth.logout')}
                 </button>
@@ -148,13 +161,13 @@ export default function Header() {
               <>
                 <button
                   onClick={() => openAuthModal('login')}
-                  className="hidden sm:block px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  className="hidden lg:block px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap"
                 >
                   {t('auth.login')}
                 </button>
                 <button
                   onClick={() => openAuthModal('register')}
-                  className="hidden sm:block px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  className="hidden lg:block px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors whitespace-nowrap"
                 >
                   {t('auth.register')}
                 </button>
@@ -164,12 +177,12 @@ export default function Header() {
         </div>
       </div>
 
-      {/* 모바일 메뉴 */}
+      {/* 모바일 메뉴 (1024px 미만에서 표시) */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div className="lg:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="container mx-auto px-4 py-3">
             {/* 테마/언어 토글 (모바일) */}
-            <div className="flex items-center space-x-2 pb-3 border-b border-gray-200 dark:border-gray-700 sm:hidden">
+            <div className="flex items-center space-x-2 pb-3 border-b border-gray-200 dark:border-gray-700">
               <LanguageToggle />
               <ThemeToggle />
             </div>
