@@ -16,7 +16,10 @@
     "feature3": "User registration/login",
     "feature4": "Upbit API integration",
     "feature5": "Portfolio view (holdings, profit/loss)",
+    "feature6": "Real-time message (WebSocket)",
+    "feature7": "Statistics view",
     "techStack": "Tech Stack",
+    "swagger": "Swagger Location",
     "github": "GitHub Repository",
     "license": "Distributed under MIT License."
   },

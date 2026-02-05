@@ -16,7 +16,10 @@
     "feature3": "회원가입/로그인 기능",
     "feature4": "업비트 API 연동",
     "feature5": "포트폴리오 조회 (보유 코인, 손익)",
+    "feature6": "실시간 메신저 기능 (WebSocket)",
+    "feature7": "통계 조회",
     "techStack": "기술 스택",
+    "swagger": "Swagger 주소",
     "github": "GitHub 저장소",
     "license": "MIT 라이선스로 배포됩니다."
   },

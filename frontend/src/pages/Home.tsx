@@ -62,6 +62,8 @@ export default function Home() {
           <li>{t('home.feature3')}</li>
           <li>{t('home.feature4')}</li>
           <li>{t('home.feature5')}</li>
+          <li>{t('home.feature6')}</li>
+          <li>{t('home.feature7')}</li>
         </ul>
       </div>
 
@@ -110,6 +112,24 @@ export default function Home() {
             </ul>
           </div>
         </div>
+      </div>
+
+      {/* Swagger 링크 */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          {t('home.swagger')}
+        </h2>
+        <a
+          href="http://localhost:3001/api/docs"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-lg font-medium transition-colors"
+        >
+          <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+            <path fillRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 1.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM10.5 8.75L15.25 12l-4.75 3.25V8.75z" clipRule="evenodd" />
+          </svg>
+          http://localhost:3001/api/docs
+        </a>
       </div>
 
       {/* GitHub 링크 */}
