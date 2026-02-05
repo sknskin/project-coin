@@ -206,6 +206,7 @@
     "rejectInfo": "Rejection Information",
     "rejectedAt": "Rejected At",
     "rejectReason": "Rejection Reason",
+    "accessDeny": "Access denied. System administrator privileges required.",
     "loginHistory": "Login History"
   },
   "mypage": {

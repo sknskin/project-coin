@@ -235,32 +235,71 @@ export default function MemberDetail() {
             </>
           )}
 
-          {userData.approvalStatus === 'APPROVED' && (
-            <button
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              onClick={handleToggleStatus}
-            >
-              {userData.status === 'ACTIVE' ? t('admin.deactivate') : t('admin.activate')}
-            </button>
-          )}
-
-          {userData.approvalStatus === 'REJECTED' && isSystem && (
+          {/* 시스템관리자인 경우 모든 계정에 대한 비활성화/거절/강제탈퇴 등 기능 권한 */}
+          {isSystem && (
             <>
-            <button
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
-                onClick={() => setShowApprovalModal(true)}
+              {userData.approvalStatus === 'APPROVED' && (
+                <button
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  onClick={handleToggleStatus}
+                >
+                  {userData.status === 'ACTIVE' ? t('admin.deactivate') : t('admin.activate')}
+                </button>
+              )}
+
+              {userData.approvalStatus === 'REJECTED' && (
+                <button
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    onClick={() => setShowApprovalModal(true)}
+                  >
+                    {t('admin.approve')}
+                  </button>
+              )}
+
+              <button
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                onClick={handleDelete}
               >
-                {t('admin.approve')}
+                {t('admin.forceDelete')}
               </button>
             </>
           )}
 
-          <button
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
-            onClick={handleDelete}
-          >
-            {t('admin.forceDelete')}
-          </button>
+          {/* 관리자인 경우 시스템관리자 계정을 제외한 계정에 대한 비활성화/거절/강제탈퇴 등 기능 권한 */}
+          {!isSystem && userData.role !== 'SYSTEM' && (
+            <>
+              {userData.approvalStatus === 'APPROVED' && (
+                <button
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  onClick={handleToggleStatus}
+                >
+                  {userData.status === 'ACTIVE' ? t('admin.deactivate') : t('admin.activate')}
+                </button>
+              )}
+
+              {userData.approvalStatus === 'REJECTED' && (
+                <button
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    onClick={() => setShowApprovalModal(true)}
+                  >
+                    {t('admin.approve')}
+                  </button>
+              )}
+
+              <button
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                onClick={handleDelete}
+              >
+                {t('admin.forceDelete')}
+              </button>
+            </>
+          )}
+
+          {/* 관리자인 경우 시스템관리자 계정에 대한 비활성화/거절/강제탈퇴 등 기능 권한 없음 */}
+          {!isSystem && userData.role === 'SYSTEM' && (
+            <span className="text-sm text-gray-900 dark:text-white">{t('admin.accessDeny')}</span>
+          )}
+          
         </div>
       </div>
 

@@ -206,6 +206,7 @@
     "rejectInfo": "거절 정보",
     "rejectedAt": "거절 일시",
     "rejectReason": "거절 사유",
+    "accessDeny": "시스템 관리자 계정에 접근할 권한이 없습니다.",
     "loginHistory": "로그인 기록"
   },
   "mypage": {
