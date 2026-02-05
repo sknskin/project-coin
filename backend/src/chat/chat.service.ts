@@ -292,6 +292,75 @@ export class ChatService {
     }));
   }
 
+  async deleteMessage(messageId: string, userId: string) {
+    const message = await this.prisma.message.findUnique({
+      where: { id: messageId },
+      include: {
+        conversation: {
+          include: {
+            participants: true,
+          },
+        },
+      },
+    });
+
+    if (!message) {
+      throw new ForbiddenException('Message not found');
+    }
+
+    // 본인이 보낸 메시지만 삭제 가능
+    if (message.senderId !== userId) {
+      throw new ForbiddenException('You can only delete your own messages');
+    }
+
+    // 소프트 삭제
+    await this.prisma.message.update({
+      where: { id: messageId },
+      data: { isDeleted: true },
+    });
+
+    return {
+      messageId,
+      conversationId: message.conversationId,
+    };
+  }
+
+  async leaveConversation(conversationId: string, userId: string) {
+    const participant = await this.prisma.conversationParticipant.findUnique({
+      where: {
+        conversationId_userId: { conversationId, userId },
+      },
+    });
+
+    if (!participant) {
+      throw new ForbiddenException('Not a participant of this conversation');
+    }
+
+    // 참여자 삭제
+    await this.prisma.conversationParticipant.delete({
+      where: {
+        conversationId_userId: { conversationId, userId },
+      },
+    });
+
+    // 남은 참여자 확인
+    const remainingParticipants = await this.prisma.conversationParticipant.count({
+      where: { conversationId },
+    });
+
+    // 참여자가 없으면 대화방 삭제 (선택적)
+    if (remainingParticipants === 0) {
+      await this.prisma.message.deleteMany({
+        where: { conversationId },
+      });
+      await this.prisma.conversation.delete({
+        where: { id: conversationId },
+      });
+    }
+
+    return { conversationId, userId };
+  }
+
   async getAvailableUsers(currentUserId: string) {
     const users = await this.prisma.user.findMany({
       where: {
@@ -309,6 +378,86 @@ export class ChatService {
       const orderB = roleOrder[b.role] ?? 3;
       return orderA - orderB;
     });
+  }
+
+  async addParticipants(
+    conversationId: string,
+    requesterId: string,
+    newParticipantIds: string[],
+  ) {
+    // 대화 조회
+    const conversation = await this.prisma.conversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        participants: {
+          include: {
+            user: { select: { id: true, email: true, nickname: true } },
+          },
+        },
+      },
+    });
+
+    if (!conversation) {
+      throw new ForbiddenException('Conversation not found');
+    }
+
+    // 요청자가 참여자인지 확인
+    const isRequesterParticipant = conversation.participants.some(
+      (p) => p.userId === requesterId,
+    );
+    if (!isRequesterParticipant) {
+      throw new ForbiddenException('Not a participant of this conversation');
+    }
+
+    // 1:1 대화인 경우 그룹으로 전환
+    const existingParticipantIds = conversation.participants.map((p) => p.userId);
+    const uniqueNewIds = newParticipantIds.filter(
+      (id) => !existingParticipantIds.includes(id),
+    );
+
+    if (uniqueNewIds.length === 0) {
+      return { conversation, addedUserIds: [] }; // 이미 모두 참여 중
+    }
+
+    // 새 참여자 추가
+    await this.prisma.conversationParticipant.createMany({
+      data: uniqueNewIds.map((userId) => ({
+        conversationId,
+        userId,
+      })),
+    });
+
+    // 그룹 채팅으로 업데이트 (필요한 경우)
+    if (!conversation.isGroup) {
+      await this.prisma.conversation.update({
+        where: { id: conversationId },
+        data: { isGroup: true },
+      });
+    }
+
+    // 새 참여자들을 WebSocket 방에 조인
+    await this.chatGateway.joinConversation(conversationId, uniqueNewIds);
+
+    // 업데이트된 대화 반환
+    const updatedConversation = await this.prisma.conversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        participants: {
+          include: {
+            user: { select: { id: true, email: true, nickname: true } },
+          },
+        },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          include: {
+            sender: { select: { id: true, email: true, nickname: true } },
+          },
+        },
+      },
+    });
+
+    return { conversation: updatedConversation!, addedUserIds: uniqueNewIds };
   }
 
   private async findExistingConversation(participantIds: string[]) {

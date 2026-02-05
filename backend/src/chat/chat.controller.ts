@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   Query,
@@ -11,7 +12,7 @@ import {
 import { Request as ExpressRequest } from 'express';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ChatService } from './chat.service';
-import { CreateConversationDto, SendMessageDto } from './dto/create-conversation.dto';
+import { CreateConversationDto, SendMessageDto, AddParticipantsDto } from './dto/create-conversation.dto';
 import { ChatGateway } from './chat.gateway';
 
 interface RequestWithUser extends ExpressRequest {
@@ -96,5 +97,60 @@ export class ChatController {
   @Get('users')
   getAvailableUsers(@Request() req: RequestWithUser) {
     return this.chatService.getAvailableUsers(req.user.id);
+  }
+
+  @Post('conversations/:id/participants')
+  async addParticipants(
+    @Request() req: RequestWithUser,
+    @Param('id') conversationId: string,
+    @Body() dto: AddParticipantsDto,
+  ) {
+    const result = await this.chatService.addParticipants(
+      conversationId,
+      req.user.id,
+      dto.participantIds,
+    );
+
+    // 새로 추가된 참여자와 기존 참여자들에게 알림
+    if (result.addedUserIds && result.addedUserIds.length > 0) {
+      const allParticipantIds = result.conversation.participants.map(
+        (p: ConversationParticipant) => p.userId,
+      );
+      this.chatGateway.notifyParticipantsAdded(
+        result.conversation,
+        allParticipantIds,
+        result.addedUserIds,
+      );
+    }
+
+    return result.conversation;
+  }
+
+  @Delete('messages/:id')
+  async deleteMessage(
+    @Request() req: RequestWithUser,
+    @Param('id') messageId: string,
+  ) {
+    const result = await this.chatService.deleteMessage(messageId, req.user.id);
+
+    // WebSocket으로 메시지 삭제 알림
+    this.chatGateway.server
+      .to(`conversation:${result.conversationId}`)
+      .emit('message:deleted', { messageId, conversationId: result.conversationId });
+
+    return result;
+  }
+
+  @Delete('conversations/:id/leave')
+  async leaveConversation(
+    @Request() req: RequestWithUser,
+    @Param('id') conversationId: string,
+  ) {
+    const result = await this.chatService.leaveConversation(conversationId, req.user.id);
+
+    // WebSocket으로 퇴장 알림
+    this.chatGateway.notifyUserLeft(conversationId, req.user.id);
+
+    return result;
   }
 }

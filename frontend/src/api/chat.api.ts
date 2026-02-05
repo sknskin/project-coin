@@ -23,4 +23,15 @@ export const chatApi = {
 
   getAvailableUsers: () =>
     apiClient.get<ChatUser[]>('/chat/users'),
+
+  addParticipants: (conversationId: string, participantIds: string[]) =>
+    apiClient.post<Conversation>(`/chat/conversations/${conversationId}/participants`, {
+      participantIds,
+    }),
+
+  deleteMessage: (messageId: string) =>
+    apiClient.delete<{ messageId: string; conversationId: string }>(`/chat/messages/${messageId}`),
+
+  leaveConversation: (conversationId: string) =>
+    apiClient.delete<{ conversationId: string; userId: string }>(`/chat/conversations/${conversationId}/leave`),
 };

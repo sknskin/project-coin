@@ -209,4 +209,48 @@ export class ChatGateway
         .emit('conversation:new', conversation);
     }
   }
+
+  // 참여자가 추가되었을 때 알림
+  notifyParticipantsAdded(
+    conversation: any,
+    allParticipantIds: string[],
+    addedUserIds: string[],
+  ) {
+    // 기존 참여자들에게 대화 업데이트 알림
+    for (const userId of allParticipantIds) {
+      if (!addedUserIds.includes(userId)) {
+        this.server
+          .to(`user:${userId}`)
+          .emit('conversation:updated', conversation);
+      }
+    }
+
+    // 새로 추가된 참여자들에게 새 대화 알림
+    for (const userId of addedUserIds) {
+      this.server
+        .to(`user:${userId}`)
+        .emit('conversation:new', conversation);
+    }
+  }
+
+  // 사용자가 대화방을 나갔을 때 알림
+  notifyUserLeft(conversationId: string, userId: string) {
+    // 해당 사용자의 소켓을 대화방에서 제거
+    const sockets = this.userSockets.get(userId);
+    if (sockets) {
+      for (const socketId of sockets) {
+        this.server.in(socketId).socketsLeave(`conversation:${conversationId}`);
+      }
+    }
+
+    // 대화방 참여자들에게 알림
+    this.server
+      .to(`conversation:${conversationId}`)
+      .emit('conversation:userLeft', { conversationId, userId });
+
+    // 나간 사용자에게 대화방 제거 알림
+    this.server
+      .to(`user:${userId}`)
+      .emit('conversation:left', { conversationId });
+  }
 }

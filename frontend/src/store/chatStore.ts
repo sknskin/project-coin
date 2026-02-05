@@ -44,9 +44,12 @@ interface ChatState {
   setConversations: (conversations: Conversation[]) => void;
   addConversation: (conversation: Conversation) => void;
   updateConversation: (conversationId: string, updates: Partial<Conversation>) => void;
+  replaceConversation: (conversation: Conversation) => void;
   setMessages: (conversationId: string, messages: Message[]) => void;
   addMessage: (conversationId: string, message: Message) => void;
   prependMessages: (conversationId: string, messages: Message[]) => void;
+  deleteMessage: (conversationId: string, messageId: string) => void;
+  removeConversation: (conversationId: string) => void;
 
   // 읽음 상태
   setUnreadCounts: (counts: Record<string, number>) => void;
@@ -129,6 +132,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
       ),
     })),
 
+  replaceConversation: (conversation) =>
+    set((state) => {
+      const exists = state.conversations.some((c) => c.id === conversation.id);
+      if (exists) {
+        return {
+          conversations: state.conversations.map((c) =>
+            c.id === conversation.id ? conversation : c
+          ),
+        };
+      }
+      // 새 대화면 추가
+      return { conversations: [conversation, ...state.conversations] };
+    }),
+
   setMessages: (conversationId, messages) =>
     set((state) => {
       const newMessages = new Map(state.messages);
@@ -190,6 +207,34 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const existing = newMessagesMap.get(conversationId) || [];
       newMessagesMap.set(conversationId, [...messages, ...existing]);
       return { messages: newMessagesMap };
+    }),
+
+  deleteMessage: (conversationId, messageId) =>
+    set((state) => {
+      const newMessages = new Map(state.messages);
+      const existing = newMessages.get(conversationId) || [];
+      newMessages.set(
+        conversationId,
+        existing.filter((m) => m.id !== messageId)
+      );
+      return { messages: newMessages };
+    }),
+
+  removeConversation: (conversationId) =>
+    set((state) => {
+      const newMessages = new Map(state.messages);
+      newMessages.delete(conversationId);
+      const newUnreadCounts = { ...state.unreadCounts };
+      delete newUnreadCounts[conversationId];
+      return {
+        conversations: state.conversations.filter((c) => c.id !== conversationId),
+        messages: newMessages,
+        unreadCounts: newUnreadCounts,
+        activeConversationId:
+          state.activeConversationId === conversationId
+            ? null
+            : state.activeConversationId,
+      };
     }),
 
   setUnreadCounts: (counts) => set({ unreadCounts: { ...counts } }),

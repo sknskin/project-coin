@@ -368,6 +368,14 @@
     "typing": "Typing...",
     "groupNamePlaceholder": "Group chat name (optional)",
     "createGroupChat": "Start group chat with {{count}} people",
-    "startChat": "Start Chat"
+    "startChat": "Start Chat",
+    "addParticipants": "Add Participants",
+    "currentParticipants": "Current participants",
+    "noAvailableUsers": "No available users to add.",
+    "addParticipantsCount": "Add {{count}} people",
+    "deleteMessage": "Delete Message",
+    "deleteMessageConfirm": "Are you sure you want to delete this message?",
+    "leaveConversation": "Leave Conversation",
+    "leaveConversationConfirm": "Are you sure you want to leave this conversation? You will no longer be able to see the chat history."
   }
 }

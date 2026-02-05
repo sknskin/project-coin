@@ -21,6 +21,7 @@ export default function Header() {
   const { logout } = useAuth();
   const { formattedTime, isExpiringSoon } = useSessionTimer();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     fetchMenus();
@@ -63,8 +64,24 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-14">
           <div className="flex items-center space-x-4">
+            {/* 햄버거 메뉴 버튼 (모바일) */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
             {/* 테마/언어 토글을 로고 왼쪽에 배치 */}
-            <div className="flex items-center space-x-1">
+            <div className="hidden sm:flex items-center space-x-1">
               <LanguageToggle />
               <ThemeToggle />
             </div>
@@ -89,7 +106,7 @@ export default function Header() {
           <div className="flex items-center space-x-2">
             {isAuthenticated ? (
               <>
-                <div className="flex items-center space-x-2 text-sm">
+                <div className="hidden sm:flex items-center space-x-2 text-sm">
                   <button
                     onClick={handleNicknameClick}
                     className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors cursor-pointer"
@@ -112,7 +129,7 @@ export default function Header() {
                 </div>
                 <button
                   onClick={handleLogoutClick}
-                  className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  className="hidden sm:block px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   {t('auth.logout')}
                 </button>
@@ -131,13 +148,13 @@ export default function Header() {
               <>
                 <button
                   onClick={() => openAuthModal('login')}
-                  className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  className="hidden sm:block px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   {t('auth.login')}
                 </button>
                 <button
                   onClick={() => openAuthModal('register')}
-                  className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  className="hidden sm:block px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                 >
                   {t('auth.register')}
                 </button>
@@ -146,6 +163,93 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {/* 모바일 메뉴 */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="container mx-auto px-4 py-3">
+            {/* 테마/언어 토글 (모바일) */}
+            <div className="flex items-center space-x-2 pb-3 border-b border-gray-200 dark:border-gray-700 sm:hidden">
+              <LanguageToggle />
+              <ThemeToggle />
+            </div>
+
+            {/* 네비게이션 메뉴 */}
+            <nav className="py-3 space-y-1">
+              {visibleMenus.map((menu) => (
+                menu.path && (
+                  <Link
+                    key={menu.id}
+                    to={menu.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    {getMenuLabel(menu)}
+                  </Link>
+                )
+              ))}
+            </nav>
+
+            {/* 사용자 정보 및 액션 */}
+            <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+              {isAuthenticated ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-3 py-2">
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleNicknameClick();
+                      }}
+                      className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                    >
+                      {user?.nickname || user?.name || user?.email}{t('auth.userSuffix')}
+                    </button>
+                    <span
+                      className={`font-mono tabular-nums px-2 py-0.5 rounded text-xs ${
+                        isExpiringSoon
+                          ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300'
+                          : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      {formattedTime}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleLogoutClick();
+                    }}
+                    className="w-full px-3 py-2 text-left text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    {t('auth.logout')}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      openAuthModal('login');
+                    }}
+                    className="w-full px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
+                  >
+                    {t('auth.login')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      openAuthModal('register');
+                    }}
+                    className="w-full px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-center"
+                  >
+                    {t('auth.register')}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

@@ -368,6 +368,14 @@
     "typing": "입력 중...",
     "groupNamePlaceholder": "그룹 채팅방 이름 (선택)",
     "createGroupChat": "{{count}}명과 그룹 채팅 시작",
-    "startChat": "대화 시작"
+    "startChat": "대화 시작",
+    "addParticipants": "참여자 추가",
+    "currentParticipants": "현재 참여자",
+    "noAvailableUsers": "추가 가능한 사용자가 없습니다.",
+    "addParticipantsCount": "{{count}}명 추가",
+    "deleteMessage": "메시지 삭제",
+    "deleteMessageConfirm": "이 메시지를 삭제하시겠습니까?",
+    "leaveConversation": "채팅방 나가기",
+    "leaveConversationConfirm": "이 채팅방에서 나가시겠습니까? 대화 내역은 더 이상 볼 수 없습니다."
   }
 }

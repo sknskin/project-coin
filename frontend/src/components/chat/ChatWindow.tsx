@@ -1,10 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/authStore';
 import { useChatStore } from '../../store/chatStore';
 import { chatApi } from '../../api/chat.api';
 import MessageInput from './MessageInput';
 import Loading from '../common/Loading';
+import AddParticipantsModal from './AddParticipantsModal';
+import ConfirmModal from '../common/ConfirmModal';
 
 interface ChatWindowProps {
   conversationId: string;
@@ -36,6 +38,10 @@ export default function ChatWindow({
   } = useChatStore();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isAddParticipantsOpen, setIsAddParticipantsOpen] = useState(false);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const conversationMessages = messages.get(conversationId) || [];
   const conversation = conversations.find((c) => c.id === conversationId);
 
@@ -80,6 +86,15 @@ export default function ChatWindow({
     loadMessages();
     onMarkAsRead(conversationId);
   }, [conversationId]);
+
+  // 외부 클릭 시 메뉴 닫기
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (isMenuOpen) setIsMenuOpen(false);
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isMenuOpen]);
 
   useEffect(() => {
     scrollToBottom();
@@ -163,6 +178,29 @@ export default function ChatWindow({
     return conversationMessages[index - 1].senderId !== msg.senderId;
   };
 
+  const handleDeleteMessage = async () => {
+    if (!messageToDelete) return;
+    try {
+      await chatApi.deleteMessage(messageToDelete);
+      useChatStore.getState().deleteMessage(conversationId, messageToDelete);
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+    } finally {
+      setMessageToDelete(null);
+    }
+  };
+
+  const handleLeaveConversation = async () => {
+    try {
+      await chatApi.leaveConversation(conversationId);
+      useChatStore.getState().removeConversation(conversationId);
+    } catch (error) {
+      console.error('Failed to leave conversation:', error);
+    } finally {
+      setIsLeaveModalOpen(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -216,6 +254,44 @@ export default function ChatWindow({
               : t('chat.offline')}
           </p>
         </div>
+        {/* Header actions */}
+        <div className="ml-auto flex items-center gap-1">
+          <button
+            onClick={() => setIsAddParticipantsOpen(true)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            title={t('chat.addParticipants')}
+          >
+            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+          </button>
+          <div className="relative">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMenuOpen(!isMenuOpen);
+              }}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+              </svg>
+            </button>
+            {isMenuOpen && (
+              <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsLeaveModalOpen(true);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                >
+                  {t('chat.leaveConversation')}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Messages */}
@@ -253,7 +329,7 @@ export default function ChatWindow({
                       {message.sender?.nickname || message.sender?.email}
                     </p>
                   )}
-                  <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}>
                     <div className={`flex items-end gap-1 max-w-[75%] ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
                       <div
                         className={`px-4 py-2 rounded-2xl ${
@@ -277,6 +353,18 @@ export default function ChatWindow({
                           {message.unreadCount}
                         </span>
                       )}
+                      {/* 삭제 버튼 (본인 메시지만) */}
+                      {isOwn && !message.id.startsWith('temp-') && (
+                        <button
+                          onClick={() => setMessageToDelete(message.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-all flex-shrink-0 mb-1"
+                          title={t('chat.deleteMessage')}
+                        >
+                          <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -292,6 +380,39 @@ export default function ChatWindow({
         onSend={handleSend}
         onTypingStart={() => onStartTyping(conversationId)}
         onTypingStop={() => onStopTyping(conversationId)}
+      />
+
+      {/* Add Participants Modal */}
+      {conversation && (
+        <AddParticipantsModal
+          isOpen={isAddParticipantsOpen}
+          onClose={() => setIsAddParticipantsOpen(false)}
+          conversation={conversation}
+        />
+      )}
+
+      {/* Delete Message Confirmation */}
+      <ConfirmModal
+        isOpen={!!messageToDelete}
+        onClose={() => setMessageToDelete(null)}
+        onConfirm={handleDeleteMessage}
+        title={t('chat.deleteMessage')}
+        message={t('chat.deleteMessageConfirm')}
+        confirmText={t('common.confirm')}
+        cancelText={t('common.cancel')}
+        variant="danger"
+      />
+
+      {/* Leave Conversation Confirmation */}
+      <ConfirmModal
+        isOpen={isLeaveModalOpen}
+        onClose={() => setIsLeaveModalOpen(false)}
+        onConfirm={handleLeaveConversation}
+        title={t('chat.leaveConversation')}
+        message={t('chat.leaveConversationConfirm')}
+        confirmText={t('common.confirm')}
+        cancelText={t('common.cancel')}
+        variant="danger"
       />
     </div>
   );
