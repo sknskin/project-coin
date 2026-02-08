@@ -7,6 +7,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Delete,
   Body,
   UseGuards,
@@ -55,6 +56,33 @@ export class PortfolioController {
     @Body() dto: ConnectUpbitDto,
   ) {
     return this.portfolioService.connectUpbit(
+      user.id,
+      dto.accessKey,
+      dto.secretKey,
+    );
+  }
+
+  /**
+   * 업비트 API 키 수정 (재연동)
+   * @param user 현재 로그인한 사용자 정보
+   * @param dto 새 업비트 API 키 정보
+   * @returns 연동 성공 메시지
+   * @description 기존 연동을 해제하고 새 API 키로 다시 연동합니다
+   */
+  @Put('connect')
+  @ApiOperation({
+    summary: '업비트 API 키 수정',
+    description: '기존 API 키를 삭제하고 새 API 키로 다시 연동합니다.',
+  })
+  @ApiBody({ type: ConnectUpbitDto })
+  @ApiResponse({ status: 200, description: '재연동 성공' })
+  @ApiResponse({ status: 400, description: '잘못된 API 키' })
+  @ApiResponse({ status: 401, description: '인증되지 않음' })
+  async reconnectUpbit(
+    @CurrentUser() user: { id: string },
+    @Body() dto: ConnectUpbitDto,
+  ) {
+    return this.portfolioService.reconnectUpbit(
       user.id,
       dto.accessKey,
       dto.secretKey,

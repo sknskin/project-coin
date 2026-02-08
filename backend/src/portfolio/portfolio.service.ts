@@ -15,6 +15,13 @@ export interface UpbitAccount {
   unit_currency: string;
 }
 
+export interface UpbitErrorResponse {
+  error: {
+    name: string;
+    message: string;
+  };
+}
+
 export interface Holding {
   currency: string;
   balance: number;
@@ -87,7 +94,7 @@ export class PortfolioService {
   }
 
   async disconnectUpbit(userId: string): Promise<void> {
-    await this.prisma.upbitCredential.delete({
+    await this.prisma.upbitCredential.deleteMany({
       where: { userId },
     });
   }
@@ -123,13 +130,33 @@ export class PortfolioService {
       };
     }
 
-    // Get current prices
-    const markets = holdingsData.map((h) => `KRW-${h.currency}`);
+    // KRW 마켓 목록 조회하여 유효한 마켓만 필터링
+    const krwMarkets = await this.upbitService.getKrwMarkets();
+    const validMarketCodes = new Set(krwMarkets.map((m) => m.market));
+
+    // 보유 코인 중 KRW 마켓이 존재하는 것만 필터링
+    const validHoldings = holdingsData.filter((h) =>
+      validMarketCodes.has(`KRW-${h.currency}`),
+    );
+
+    if (validHoldings.length === 0) {
+      // KRW 마켓이 없는 코인만 보유한 경우
+      return {
+        totalBuyPrice: 0,
+        totalEvalPrice: 0,
+        profitLoss: 0,
+        profitLossRate: 0,
+        holdings: [],
+      };
+    }
+
+    // Get current prices for valid markets only
+    const markets = validHoldings.map((h) => `KRW-${h.currency}`);
     const tickers = await this.upbitService.getTicker(markets);
     const priceMap = new Map(tickers.map((t) => [t.market, t.trade_price]));
 
     // Calculate holdings
-    const holdings: Holding[] = holdingsData.map((h) => {
+    const holdings: Holding[] = validHoldings.map((h) => {
       const market = `KRW-${h.currency}`;
       const balance = parseFloat(h.balance);
       const avgBuyPrice = parseFloat(h.avg_buy_price);
@@ -194,6 +221,20 @@ export class PortfolioService {
     return !!credential && credential.isValid;
   }
 
+  /**
+   * 기존 연동 해제 후 새로 연동 (API 키 수정용)
+   */
+  async reconnectUpbit(
+    userId: string,
+    accessKey: string,
+    secretKey: string,
+  ): Promise<{ success: boolean; isValid: boolean }> {
+    // 기존 연동 해제
+    await this.disconnectUpbit(userId);
+    // 새로 연동
+    return this.connectUpbit(userId, accessKey, secretKey);
+  }
+
   private async validateUpbitKeys(
     accessKey: string,
     secretKey: string,
@@ -201,7 +242,8 @@ export class PortfolioService {
     try {
       await this.getUpbitAccounts(accessKey, secretKey);
       return true;
-    } catch {
+    } catch (error) {
+      this.logger.error('Upbit key validation failed:', error);
       return false;
     }
   }
@@ -215,19 +257,39 @@ export class PortfolioService {
       nonce: uuidv4(),
     };
 
-    const token = sign(payload, secretKey);
+    // JWT 토큰 생성 (HS256 알고리즘 명시)
+    const token = sign(payload, secretKey, { algorithm: 'HS256' });
+
+    this.logger.debug(`Requesting Upbit accounts API`);
 
     const response = await fetch('https://api.upbit.com/v1/accounts', {
+      method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
     });
 
+    const data = await response.json();
+
+    // 에러 응답 처리
     if (!response.ok) {
-      throw new Error('Failed to fetch accounts');
+      const errorData = data as UpbitErrorResponse;
+      this.logger.error(
+        `Upbit API error: ${response.status} - ${JSON.stringify(errorData)}`,
+      );
+      throw new BadRequestException(
+        errorData.error?.message || `Upbit API error: ${response.status}`,
+      );
     }
 
-    return response.json();
+    // 응답이 배열인지 확인
+    if (!Array.isArray(data)) {
+      this.logger.error(`Unexpected Upbit response format: ${JSON.stringify(data)}`);
+      throw new BadRequestException('Unexpected response from Upbit API');
+    }
+
+    return data as UpbitAccount[];
   }
 
   private encrypt(text: string, key: string): string {

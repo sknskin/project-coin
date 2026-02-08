@@ -21,3 +21,5 @@ export interface ConnectUpbitRequest {
   accessKey: string;
   secretKey: string;
 }
+
+export type PortfolioTab = 'overview' | 'analysis' | 'holdings';

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -49,6 +49,13 @@ export interface UpbitCandle {
   unit?: number;
 }
 
+interface UpbitErrorResponse {
+  error: {
+    name: string;
+    message: string;
+  };
+}
+
 @Injectable()
 export class UpbitService {
   private readonly logger = new Logger(UpbitService.name);
@@ -62,6 +69,12 @@ export class UpbitService {
   async getMarkets(): Promise<UpbitMarket[]> {
     const response = await fetch(`${this.baseUrl}/market/all?isDetails=true`);
     const data = await response.json();
+
+    if (!response.ok || !Array.isArray(data)) {
+      this.logger.error(`Failed to fetch markets: ${JSON.stringify(data)}`);
+      throw new BadRequestException('Failed to fetch markets from Upbit');
+    }
+
     return data;
   }
 
@@ -71,9 +84,29 @@ export class UpbitService {
   }
 
   async getTicker(markets: string[]): Promise<UpbitTicker[]> {
+    if (!markets || markets.length === 0) {
+      return [];
+    }
+
     const marketParam = markets.join(',');
     const response = await fetch(`${this.baseUrl}/ticker?markets=${marketParam}`);
     const data = await response.json();
+
+    // 에러 응답 처리
+    if (!response.ok) {
+      const errorData = data as UpbitErrorResponse;
+      this.logger.error(`Upbit ticker API error: ${JSON.stringify(errorData)}`);
+      throw new BadRequestException(
+        errorData.error?.message || 'Failed to fetch ticker from Upbit',
+      );
+    }
+
+    // 응답이 배열인지 확인
+    if (!Array.isArray(data)) {
+      this.logger.error(`Unexpected ticker response: ${JSON.stringify(data)}`);
+      throw new BadRequestException('Unexpected response from Upbit ticker API');
+    }
+
     return data;
   }
 
@@ -89,6 +122,12 @@ export class UpbitService {
     }
     const response = await fetch(url);
     const data = await response.json();
+
+    if (!response.ok || !Array.isArray(data)) {
+      this.logger.error(`Failed to fetch minute candles: ${JSON.stringify(data)}`);
+      return [];
+    }
+
     return data;
   }
 
@@ -103,6 +142,12 @@ export class UpbitService {
     }
     const response = await fetch(url);
     const data = await response.json();
+
+    if (!response.ok || !Array.isArray(data)) {
+      this.logger.error(`Failed to fetch day candles: ${JSON.stringify(data)}`);
+      return [];
+    }
+
     return data;
   }
 
@@ -117,6 +162,12 @@ export class UpbitService {
     }
     const response = await fetch(url);
     const data = await response.json();
+
+    if (!response.ok || !Array.isArray(data)) {
+      this.logger.error(`Failed to fetch week candles: ${JSON.stringify(data)}`);
+      return [];
+    }
+
     return data;
   }
 
@@ -131,6 +182,12 @@ export class UpbitService {
     }
     const response = await fetch(url);
     const data = await response.json();
+
+    if (!response.ok || !Array.isArray(data)) {
+      this.logger.error(`Failed to fetch month candles: ${JSON.stringify(data)}`);
+      return [];
+    }
+
     return data;
   }
 

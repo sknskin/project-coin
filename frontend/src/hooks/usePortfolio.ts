@@ -11,8 +11,9 @@ export function usePortfolio() {
     queryKey: ['portfolio'],
     queryFn: portfolioApi.getPortfolio,
     enabled: isAuthenticated,
-    staleTime: 30 * 1000,
-    refetchInterval: 60 * 1000,
+    staleTime: 5 * 1000, // 5초 후 stale
+    refetchInterval: 10 * 1000, // 10초마다 갱신
+    refetchOnWindowFocus: true, // 창 포커스 시 갱신
   });
 }
 
@@ -33,6 +34,19 @@ export function useConnectUpbit() {
 
   return useMutation({
     mutationFn: (data: ConnectUpbitRequest) => portfolioApi.connect(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+      closeUpbitConnectModal();
+    },
+  });
+}
+
+export function useReconnectUpbit() {
+  const queryClient = useQueryClient();
+  const { closeUpbitConnectModal } = useUIStore();
+
+  return useMutation({
+    mutationFn: (data: ConnectUpbitRequest) => portfolioApi.reconnect(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolio'] });
       closeUpbitConnectModal();

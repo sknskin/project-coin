@@ -1,3 +1,4 @@
+import { useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -43,29 +44,41 @@ export default function UsersTab({ dateRange, period }: UsersTabProps) {
   });
 
   const dateFormat = period === 'yearly' ? 'yyyy' : period === 'monthly' ? 'yyyy-MM' : 'MM/dd';
-  const chartData = (historicalData?.data || []).map((stat: DailyStatistics) => ({
-    date: period === 'daily' ? format(new Date(stat.date), dateFormat) : stat.date,
-    logins: stat.loginCount,
-    registrations: stat.registerCount,
-  }));
+  const chartData = useMemo(() =>
+    (historicalData?.data || []).map((stat: DailyStatistics) => ({
+      date: period === 'daily' ? format(new Date(stat.date), dateFormat) : stat.date,
+      logins: stat.loginCount,
+      registrations: stat.registerCount,
+    })),
+    [historicalData?.data, period, dateFormat]
+  );
 
   const hasData = chartData.length >= 2;
   const userDetail = userDetailData?.data;
 
-  const roleData = (userDetail?.roleDistribution || []).map((r) => ({
-    name: t(`roles.${r.role.toLowerCase()}`),
-    value: r.count,
-    color: ROLE_COLORS[r.role] || '#95a5a6',
-  }));
+  const roleData = useMemo(() =>
+    (userDetail?.roleDistribution || []).map((r) => ({
+      name: t(`roles.${r.role.toLowerCase()}`),
+      value: r.count,
+      color: ROLE_COLORS[r.role] || '#95a5a6',
+    })),
+    [userDetail?.roleDistribution, t]
+  );
 
-  const approvalData = (userDetail?.approvalDistribution || []).map((r) => ({
-    name: t(`approvalStatus.${r.status.toLowerCase()}`),
-    value: r.count,
-    color: APPROVAL_COLORS[r.status] || '#95a5a6',
-  }));
+  const approvalData = useMemo(() =>
+    (userDetail?.approvalDistribution || []).map((r) => ({
+      name: t(`approvalStatus.${r.status.toLowerCase()}`),
+      value: r.count,
+      color: APPROVAL_COLORS[r.status] || '#95a5a6',
+    })),
+    [userDetail?.approvalDistribution, t]
+  );
 
-  const renderLabel = ({ name, percent }: { name?: string; percent?: number }) =>
-    `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`;
+  const renderLabel = useCallback(
+    ({ name, percent }: { name?: string; percent?: number }) =>
+      `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`,
+    []
+  );
 
   return (
     <div className="space-y-6">
@@ -116,7 +129,16 @@ export default function UsersTab({ dateRange, period }: UsersTabProps) {
           {roleData.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
-                <Pie data={roleData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={renderLabel}>
+                <Pie
+                  data={roleData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label={renderLabel}
+                  isAnimationActive={false}
+                >
                   {roleData.map((entry, idx) => (
                     <Cell key={idx} fill={entry.color} />
                   ))}
@@ -138,7 +160,16 @@ export default function UsersTab({ dateRange, period }: UsersTabProps) {
           {approvalData.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
-                <Pie data={approvalData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={renderLabel}>
+                <Pie
+                  data={approvalData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label={renderLabel}
+                  isAnimationActive={false}
+                >
                   {approvalData.map((entry, idx) => (
                     <Cell key={idx} fill={entry.color} />
                   ))}

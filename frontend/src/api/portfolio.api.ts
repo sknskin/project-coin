@@ -10,6 +10,15 @@ export const portfolioApi = {
     return response.data;
   },
 
+  // API 키 수정 (재연동)
+  reconnect: async (data: ConnectUpbitRequest): Promise<{ success: boolean; isValid: boolean }> => {
+    const response = await apiClient.put<{ success: boolean; isValid: boolean }>(
+      '/portfolio/connect',
+      data,
+    );
+    return response.data;
+  },
+
   disconnect: async (): Promise<void> => {
     await apiClient.delete('/portfolio/disconnect');
   },
