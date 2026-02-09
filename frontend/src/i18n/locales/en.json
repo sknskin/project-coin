@@ -176,15 +176,28 @@
   "common": {
     "confirm": "Confirm",
     "cancel": "Cancel",
+    "close": "Close",
     "loading": "Loading...",
     "save": "Save",
     "search": "Search",
     "reset": "Reset",
+    "retry": "Retry",
     "all": "All",
     "back": "Back",
     "prev": "Previous",
     "next": "Next",
     "viewPerPage": "Show {{count}}"
+  },
+  "error": {
+    "detailTitle": "Error Details",
+    "viewDetails": "View Details",
+    "statusCode": "Status Code",
+    "endpoint": "Request URL",
+    "serverMessage": "Server Message",
+    "timestamp": "Timestamp",
+    "copyDetails": "Copy",
+    "copied": "Copied to clipboard.",
+    "unknown": "An unknown error occurred."
   },
   "menu": {
     "coinInfo": "Coin News",

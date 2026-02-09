@@ -23,6 +23,7 @@ import { useSessionManager } from './hooks/useSessionManager';
 import { useNotificationWebSocket } from './hooks/useNotificationWebSocket';
 import { useChatWebSocket } from './hooks/useChatWebSocket';
 import { useVisitorTracking } from './hooks/useVisitorTracking';
+import ToastContainer from './components/common/Toast';
 
 function App() {
   const { isAuthModalOpen } = useUIStore();
@@ -59,6 +60,7 @@ function App() {
       {isAuthenticated && <ChatSidebar />}
       {isAuthModalOpen && <AuthModal />}
       <SessionWarningModal onExtend={handleExtend} onDismiss={handleDismiss} />
+      <ToastContainer />
     </div>
   );
 }

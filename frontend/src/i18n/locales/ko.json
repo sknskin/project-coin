@@ -176,15 +176,28 @@
   "common": {
     "confirm": "확인",
     "cancel": "취소",
+    "close": "닫기",
     "loading": "로딩 중...",
     "save": "저장",
     "search": "검색",
     "reset": "초기화",
+    "retry": "다시 시도",
     "all": "전체",
     "back": "뒤로",
     "prev": "이전",
     "next": "다음",
     "viewPerPage": "{{count}}개씩 보기"
+  },
+  "error": {
+    "detailTitle": "오류 상세 정보",
+    "viewDetails": "상세 정보 보기",
+    "statusCode": "상태 코드",
+    "endpoint": "요청 URL",
+    "serverMessage": "서버 메시지",
+    "timestamp": "발생 시간",
+    "copyDetails": "복사",
+    "copied": "복사가 완료되었습니다.",
+    "unknown": "알 수 없는 오류가 발생했습니다."
   },
   "menu": {
     "coinInfo": "코인뉴스",

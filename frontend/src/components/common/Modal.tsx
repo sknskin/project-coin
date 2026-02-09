@@ -19,7 +19,6 @@ const sizeClasses = {
 export default function Modal({ isOpen, onClose, title, children, autoFocus = true, size = 'md' }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<Element | null>(null);
-  const savedScrollY = useRef<number | null>(null);
 
   const focusFirstInput = useCallback(() => {
     if (!modalRef.current || !autoFocus) return;

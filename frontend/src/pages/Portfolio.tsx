@@ -11,6 +11,7 @@ import AnalysisTab from '../components/portfolio/AnalysisTab';
 import HoldingsList from '../components/portfolio/HoldingsList';
 import Modal from '../components/common/Modal';
 import ConfirmModal from '../components/common/ConfirmModal';
+import ErrorDetailModal from '../components/common/ErrorDetailModal';
 import Loading from '../components/common/Loading';
 import type { PortfolioTab } from '../types/portfolio.types';
 
@@ -28,6 +29,7 @@ export default function Portfolio() {
   const [secretKey, setSecretKey] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<PortfolioTab>('overview');
 
   if (!isAuthenticated) {
@@ -127,9 +129,21 @@ export default function Portfolio() {
             </div>
 
             {currentMutation.error && (
-              <p className="text-sm text-red-600">
-                {t('portfolio.connectFailed')}
-              </p>
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                <p className="text-sm text-red-600 dark:text-red-400 mb-1">
+                  {t('portfolio.connectFailed')}
+                </p>
+                <p className="text-xs text-red-500 dark:text-red-300 mb-2">
+                  {currentMutation.error.message}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsErrorModalOpen(true)}
+                  className="text-xs text-red-600 dark:text-red-400 underline hover:no-underline"
+                >
+                  {t('error.viewDetails')}
+                </button>
+              </div>
             )}
 
             <button
@@ -141,6 +155,13 @@ export default function Portfolio() {
             </button>
           </form>
         </Modal>
+
+        <ErrorDetailModal
+          isOpen={isErrorModalOpen}
+          onClose={() => setIsErrorModalOpen(false)}
+          error={currentMutation.error}
+          title={t('portfolio.connectFailed')}
+        />
       </div>
     );
   }
@@ -155,8 +176,33 @@ export default function Portfolio() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-red-600">{t('portfolio.loadError')}</p>
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 mb-2">{t('portfolio.loadError')}</p>
+          {/* <p className="text-sm text-gray-500 dark:text-gray-400">
+            {error.message}
+          </p> */}
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => refetch()}
+            className="px-4 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            {t('common.retry')}
+          </button>
+          <button
+            onClick={() => setIsErrorModalOpen(true)}
+            className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            {t('error.viewDetails')}
+          </button>
+        </div>
+        <ErrorDetailModal
+          isOpen={isErrorModalOpen}
+          onClose={() => setIsErrorModalOpen(false)}
+          error={error}
+          title={t('portfolio.loadError')}
+        />
       </div>
     );
   }
@@ -278,9 +324,21 @@ export default function Portfolio() {
           </div>
 
           {currentMutation.error && (
-            <p className="text-sm text-red-600">
-              {t('portfolio.connectFailed')}
-            </p>
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+              <p className="text-sm text-red-600 dark:text-red-400 mb-1">
+                {t('portfolio.connectFailed')}
+              </p>
+              <p className="text-xs text-red-500 dark:text-red-300 mb-2">
+                {currentMutation.error.message}
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsErrorModalOpen(true)}
+                className="text-xs text-red-600 dark:text-red-400 underline hover:no-underline"
+              >
+                {t('error.viewDetails')}
+              </button>
+            </div>
           )}
 
           <button
@@ -294,6 +352,14 @@ export default function Portfolio() {
           </button>
         </form>
       </Modal>
+
+      {/* 오류 상세 모달 */}
+      <ErrorDetailModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        error={currentMutation.error || error}
+        title={t('error.detailTitle')}
+      />
 
       {/* 연동 해제 확인 모달 */}
       <ConfirmModal
