@@ -103,8 +103,11 @@ export class StatisticsService {
   async getHistoricalByPeriod(
     startDate: Date,
     endDate: Date,
-    period: 'daily' | 'monthly' | 'yearly',
+    period: 'hourly' | 'daily' | 'monthly' | 'yearly',
   ) {
+    if (period === 'hourly') {
+      return this.getHourlyStats(startDate, endDate);
+    }
     if (period === 'daily') {
       return this.getHistoricalStats(startDate, endDate);
     }
@@ -124,11 +127,113 @@ export class StatisticsService {
     });
   }
 
+  /**
+   * 시간별 통계 조회 (실시간 데이터 기반)
+   */
+  private async getHourlyStats(startDate: Date, endDate: Date) {
+    // 시간별로 그룹화된 방문자 통계
+    const visitorStats: any[] = await this.prisma.$queryRawUnsafe(
+      `SELECT
+        to_char(started_at, 'YYYY-MM-DD HH24:00') as date,
+        COUNT(*)::int as "visitorCount",
+        COALESCE(SUM(page_views), 0)::int as "pageViewCount"
+      FROM visitor_sessions
+      WHERE started_at >= $1 AND started_at <= $2
+      GROUP BY to_char(started_at, 'YYYY-MM-DD HH24:00')
+      ORDER BY 1 ASC`,
+      startDate,
+      endDate,
+    );
+
+    // 시간별 로그인 통계
+    const loginStats: any[] = await this.prisma.$queryRawUnsafe(
+      `SELECT
+        to_char(login_at, 'YYYY-MM-DD HH24:00') as date,
+        COUNT(*)::int as "loginCount"
+      FROM login_histories
+      WHERE login_at >= $1 AND login_at <= $2 AND is_success = true
+      GROUP BY to_char(login_at, 'YYYY-MM-DD HH24:00')
+      ORDER BY 1 ASC`,
+      startDate,
+      endDate,
+    );
+
+    // 시간별 가입 통계
+    const registerStats: any[] = await this.prisma.$queryRawUnsafe(
+      `SELECT
+        to_char(created_at, 'YYYY-MM-DD HH24:00') as date,
+        COUNT(*)::int as "registerCount"
+      FROM users
+      WHERE created_at >= $1 AND created_at <= $2
+      GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00')
+      ORDER BY 1 ASC`,
+      startDate,
+      endDate,
+    );
+
+    // 결과 병합
+    const hourMap = new Map<string, any>();
+
+    // 시작~종료 사이의 모든 시간대 초기화
+    const current = new Date(startDate);
+    current.setMinutes(0, 0, 0);
+    const maxIterations = 168; // 최대 7일 (168시간)
+    let iterations = 0;
+    while (current <= endDate && iterations < maxIterations) {
+      const displayKey = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')} ${String(current.getHours()).padStart(2, '0')}:00`;
+      hourMap.set(displayKey, {
+        date: displayKey,
+        visitorCount: 0,
+        loginCount: 0,
+        registerCount: 0,
+        pageViewCount: 0,
+        activeUserCount: 0,
+        newAnnouncementCount: 0,
+        announcementCommentCount: 0,
+        announcementLikeCount: 0,
+        messageCount: 0,
+        activeConversationCount: 0,
+        notificationCount: 0,
+        notificationReadCount: 0,
+      });
+      current.setHours(current.getHours() + 1);
+      iterations++;
+    }
+
+    // 방문자/페이지뷰 데이터 병합
+    visitorStats.forEach((stat) => {
+      if (hourMap.has(stat.date)) {
+        const entry = hourMap.get(stat.date);
+        entry.visitorCount = stat.visitorCount;
+        entry.pageViewCount = stat.pageViewCount;
+      }
+    });
+
+    // 로그인 데이터 병합
+    loginStats.forEach((stat) => {
+      if (hourMap.has(stat.date)) {
+        hourMap.get(stat.date).loginCount = stat.loginCount;
+      }
+    });
+
+    // 가입 데이터 병합
+    registerStats.forEach((stat) => {
+      if (hourMap.has(stat.date)) {
+        hourMap.get(stat.date).registerCount = stat.registerCount;
+      }
+    });
+
+    return Array.from(hourMap.values());
+  }
+
   async getAnnouncementStats(
     startDate: Date,
     endDate: Date,
-    period: 'daily' | 'monthly' | 'yearly',
+    period: 'hourly' | 'daily' | 'monthly' | 'yearly',
   ) {
+    if (period === 'hourly') {
+      return this.getHourlyAnnouncementStats(startDate, endDate);
+    }
     if (period === 'daily') {
       const rows = await this.prisma.dailyStatistics.findMany({
         where: { date: { gte: startDate, lte: endDate } },
@@ -155,6 +260,56 @@ export class StatisticsService {
     return raw;
   }
 
+  private async getHourlyAnnouncementStats(startDate: Date, endDate: Date) {
+    const [announcements, comments, likes] = await Promise.all([
+      this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT to_char(created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
+         FROM announcements WHERE created_at >= $1 AND created_at <= $2
+         GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+        startDate, endDate,
+      ),
+      this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT to_char(created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
+         FROM announcement_comments WHERE created_at >= $1 AND created_at <= $2
+         GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+        startDate, endDate,
+      ),
+      this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT to_char(created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
+         FROM announcement_likes WHERE created_at >= $1 AND created_at <= $2
+         GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+        startDate, endDate,
+      ),
+    ]);
+
+    const hourMap = this.initHourMap(startDate, endDate);
+    announcements.forEach((r) => { if (hourMap.has(r.date)) hourMap.get(r.date).announcements = r.count; });
+    comments.forEach((r) => { if (hourMap.has(r.date)) hourMap.get(r.date).comments = r.count; });
+    likes.forEach((r) => { if (hourMap.has(r.date)) hourMap.get(r.date).likes = r.count; });
+
+    return Array.from(hourMap.values()).map((v) => ({
+      date: v.date,
+      announcements: v.announcements || 0,
+      comments: v.comments || 0,
+      likes: v.likes || 0,
+    }));
+  }
+
+  private initHourMap(startDate: Date, endDate: Date): Map<string, any> {
+    const hourMap = new Map<string, any>();
+    const current = new Date(startDate);
+    current.setMinutes(0, 0, 0);
+    const maxIterations = 168; // 최대 7일 (168시간)
+    let iterations = 0;
+    while (current <= endDate && iterations < maxIterations) {
+      const displayKey = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')} ${String(current.getHours()).padStart(2, '0')}:00`;
+      hourMap.set(displayKey, { date: displayKey });
+      current.setHours(current.getHours() + 1);
+      iterations++;
+    }
+    return hourMap;
+  }
+
   async getAnnouncementTotals() {
     const [totalAnnouncements, totalComments, totalLikes, totalViews] =
       await Promise.all([
@@ -175,8 +330,11 @@ export class StatisticsService {
   async getChatStats(
     startDate: Date,
     endDate: Date,
-    period: 'daily' | 'monthly' | 'yearly',
+    period: 'hourly' | 'daily' | 'monthly' | 'yearly',
   ) {
+    if (period === 'hourly') {
+      return this.getHourlyChatStats(startDate, endDate);
+    }
     if (period === 'daily') {
       const rows = await this.prisma.dailyStatistics.findMany({
         where: { date: { gte: startDate, lte: endDate } },
@@ -198,6 +356,33 @@ export class StatisticsService {
       active_conversation_count: 'activeConversations',
     });
     return raw;
+  }
+
+  private async getHourlyChatStats(startDate: Date, endDate: Date) {
+    const [messages, conversations] = await Promise.all([
+      this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT to_char(created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
+         FROM messages WHERE created_at >= $1 AND created_at <= $2 AND is_deleted = false
+         GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+        startDate, endDate,
+      ),
+      this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT to_char(m.created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(DISTINCT m.conversation_id)::int as count
+         FROM messages m WHERE m.created_at >= $1 AND m.created_at <= $2
+         GROUP BY to_char(m.created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+        startDate, endDate,
+      ),
+    ]);
+
+    const hourMap = this.initHourMap(startDate, endDate);
+    messages.forEach((r) => { if (hourMap.has(r.date)) hourMap.get(r.date).messages = r.count; });
+    conversations.forEach((r) => { if (hourMap.has(r.date)) hourMap.get(r.date).activeConversations = r.count; });
+
+    return Array.from(hourMap.values()).map((v) => ({
+      date: v.date,
+      messages: v.messages || 0,
+      activeConversations: v.activeConversations || 0,
+    }));
   }
 
   async getChatTotals() {
@@ -248,8 +433,11 @@ export class StatisticsService {
   async getNotificationStats(
     startDate: Date,
     endDate: Date,
-    period: 'daily' | 'monthly' | 'yearly',
+    period: 'hourly' | 'daily' | 'monthly' | 'yearly',
   ) {
+    if (period === 'hourly') {
+      return this.getHourlyNotificationStats(startDate, endDate);
+    }
     if (period === 'daily') {
       const rows = await this.prisma.dailyStatistics.findMany({
         where: { date: { gte: startDate, lte: endDate } },
@@ -285,6 +473,38 @@ export class StatisticsService {
     }));
   }
 
+  private async getHourlyNotificationStats(startDate: Date, endDate: Date) {
+    const [sent, read] = await Promise.all([
+      this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT to_char(created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
+         FROM notifications WHERE created_at >= $1 AND created_at <= $2
+         GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+        startDate, endDate,
+      ),
+      this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT to_char(created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
+         FROM notifications WHERE created_at >= $1 AND created_at <= $2 AND is_read = true
+         GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+        startDate, endDate,
+      ),
+    ]);
+
+    const hourMap = this.initHourMap(startDate, endDate);
+    sent.forEach((r) => { if (hourMap.has(r.date)) hourMap.get(r.date).sent = r.count; });
+    read.forEach((r) => { if (hourMap.has(r.date)) hourMap.get(r.date).read = r.count; });
+
+    return Array.from(hourMap.values()).map((v) => {
+      const sentCount = v.sent || 0;
+      const readCount = v.read || 0;
+      return {
+        date: v.date,
+        sent: sentCount,
+        read: readCount,
+        readRate: sentCount > 0 ? Math.round((readCount / sentCount) * 100) : 0,
+      };
+    });
+  }
+
   private async aggregateByPeriod(
     startDate: Date,
     endDate: Date,
@@ -302,7 +522,7 @@ export class StatisticsService {
        FROM daily_statistics
        WHERE date >= $1 AND date <= $2
        GROUP BY to_char(date, '${dateFormat}')
-       ORDER BY date ASC`,
+       ORDER BY 1 ASC`,
       startDate,
       endDate,
     );

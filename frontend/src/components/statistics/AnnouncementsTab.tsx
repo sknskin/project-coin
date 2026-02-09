@@ -29,7 +29,10 @@ export default function AnnouncementsTab({ dateRange, period }: AnnouncementsTab
   });
 
   const totals = totalsData?.data;
-  const chartData = statsData?.data || [];
+  const chartData = (statsData?.data || []).map((stat) => ({
+    ...stat,
+    date: period === 'hourly' ? stat.date.split(' ')[1] || stat.date : stat.date,
+  }));
   const hasData = chartData.length >= 2;
 
   return (

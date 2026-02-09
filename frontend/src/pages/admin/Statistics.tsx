@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { format, subDays, subMonths, subYears } from 'date-fns';
+import { format, subDays, subMonths, subYears, startOfDay } from 'date-fns';
 import { io, Socket } from 'socket.io-client';
 import { statisticsApi } from '../../api/statistics.api';
 import StatsTabs from '../../components/statistics/StatsTabs';
@@ -16,6 +16,8 @@ import type { RealTimeStats, StatsTab, StatsPeriod } from '../../types/statistic
 function getDefaultDateRange(period: StatsPeriod) {
   const endDate = new Date();
   switch (period) {
+    case 'hourly':
+      return { startDate: startOfDay(endDate), endDate };
     case 'monthly':
       return { startDate: subMonths(endDate, 12), endDate };
     case 'yearly':

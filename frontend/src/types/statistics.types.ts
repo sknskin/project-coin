@@ -32,7 +32,7 @@ export interface DateRangeStats {
   count: number;
 }
 
-export type StatsPeriod = 'daily' | 'monthly' | 'yearly';
+export type StatsPeriod = 'hourly' | 'daily' | 'monthly' | 'yearly';
 export type StatsTab = 'overview' | 'visitors' | 'users' | 'announcements' | 'chat';
 
 export interface AnnouncementStatsItem {

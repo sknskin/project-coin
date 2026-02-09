@@ -43,14 +43,17 @@ export default function UsersTab({ dateRange, period }: UsersTabProps) {
     queryFn: () => statisticsApi.getUserDetailStats(),
   });
 
-  const dateFormat = period === 'yearly' ? 'yyyy' : period === 'monthly' ? 'yyyy-MM' : 'MM/dd';
   const chartData = useMemo(() =>
     (historicalData?.data || []).map((stat: DailyStatistics) => ({
-      date: period === 'daily' ? format(new Date(stat.date), dateFormat) : stat.date,
+      date: period === 'hourly'
+        ? stat.date.split(' ')[1] || stat.date
+        : period === 'daily'
+          ? format(new Date(stat.date), 'MM/dd')
+          : stat.date,
       logins: stat.loginCount,
       registrations: stat.registerCount,
     })),
-    [historicalData?.data, period, dateFormat]
+    [historicalData?.data, period]
   );
 
   const hasData = chartData.length >= 2;

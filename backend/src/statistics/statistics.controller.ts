@@ -159,7 +159,7 @@ export class StatisticsController {
   })
   @ApiQuery({ name: 'startDate', description: '시작일 (YYYY-MM-DD)' })
   @ApiQuery({ name: 'endDate', description: '종료일 (YYYY-MM-DD)' })
-  @ApiQuery({ name: 'period', required: false, enum: ['daily', 'monthly', 'yearly'], description: '집계 단위 (기본값: daily)' })
+  @ApiQuery({ name: 'period', required: false, enum: ['hourly', 'daily', 'monthly', 'yearly'], description: '집계 단위 (기본값: daily)' })
   @ApiResponse({ status: 200, description: '기간별 집계 통계' })
   @ApiResponse({ status: 401, description: '인증되지 않음' })
   @ApiResponse({ status: 403, description: '권한 없음' })
@@ -167,7 +167,7 @@ export class StatisticsController {
     return this.statisticsService.getHistoricalByPeriod(
       new Date(query.startDate),
       new Date(query.endDate),
-      (query.period as 'daily' | 'monthly' | 'yearly') || 'daily',
+      (query.period as 'hourly' | 'daily' | 'monthly' | 'yearly') || 'daily',
     );
   }
 
@@ -244,7 +244,7 @@ export class StatisticsController {
   })
   @ApiQuery({ name: 'startDate', description: '시작일 (YYYY-MM-DD)' })
   @ApiQuery({ name: 'endDate', description: '종료일 (YYYY-MM-DD)' })
-  @ApiQuery({ name: 'period', required: false, enum: ['daily', 'monthly', 'yearly'], description: '집계 단위 (기본값: daily)' })
+  @ApiQuery({ name: 'period', required: false, enum: ['hourly', 'daily', 'monthly', 'yearly'], description: '집계 단위 (기본값: daily)' })
   @ApiResponse({ status: 200, description: '공지사항 통계 데이터' })
   @ApiResponse({ status: 401, description: '인증되지 않음' })
   @ApiResponse({ status: 403, description: '권한 없음' })
@@ -252,7 +252,7 @@ export class StatisticsController {
     return this.statisticsService.getAnnouncementStats(
       new Date(query.startDate),
       new Date(query.endDate),
-      (query.period as 'daily' | 'monthly' | 'yearly') || 'daily',
+      (query.period as 'hourly' | 'daily' | 'monthly' | 'yearly') || 'daily',
     );
   }
 
@@ -290,7 +290,7 @@ export class StatisticsController {
   })
   @ApiQuery({ name: 'startDate', description: '시작일 (YYYY-MM-DD)' })
   @ApiQuery({ name: 'endDate', description: '종료일 (YYYY-MM-DD)' })
-  @ApiQuery({ name: 'period', required: false, enum: ['daily', 'monthly', 'yearly'], description: '집계 단위 (기본값: daily)' })
+  @ApiQuery({ name: 'period', required: false, enum: ['hourly', 'daily', 'monthly', 'yearly'], description: '집계 단위 (기본값: daily)' })
   @ApiResponse({ status: 200, description: '채팅 통계 데이터' })
   @ApiResponse({ status: 401, description: '인증되지 않음' })
   @ApiResponse({ status: 403, description: '권한 없음' })
@@ -298,7 +298,7 @@ export class StatisticsController {
     return this.statisticsService.getChatStats(
       new Date(query.startDate),
       new Date(query.endDate),
-      (query.period as 'daily' | 'monthly' | 'yearly') || 'daily',
+      (query.period as 'hourly' | 'daily' | 'monthly' | 'yearly') || 'daily',
     );
   }
 
@@ -355,7 +355,7 @@ export class StatisticsController {
   })
   @ApiQuery({ name: 'startDate', description: '시작일 (YYYY-MM-DD)' })
   @ApiQuery({ name: 'endDate', description: '종료일 (YYYY-MM-DD)' })
-  @ApiQuery({ name: 'period', required: false, enum: ['daily', 'monthly', 'yearly'], description: '집계 단위 (기본값: daily)' })
+  @ApiQuery({ name: 'period', required: false, enum: ['hourly', 'daily', 'monthly', 'yearly'], description: '집계 단위 (기본값: daily)' })
   @ApiResponse({ status: 200, description: '알림 통계 데이터' })
   @ApiResponse({ status: 401, description: '인증되지 않음' })
   @ApiResponse({ status: 403, description: '권한 없음' })
@@ -363,7 +363,7 @@ export class StatisticsController {
     return this.statisticsService.getNotificationStats(
       new Date(query.startDate),
       new Date(query.endDate),
-      (query.period as 'daily' | 'monthly' | 'yearly') || 'daily',
+      (query.period as 'hourly' | 'daily' | 'monthly' | 'yearly') || 'daily',
     );
   }
 }

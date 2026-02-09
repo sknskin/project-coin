@@ -23,9 +23,20 @@ export default function VisitorsTab({ dateRange, period }: VisitorsTabProps) {
       statisticsApi.getHistoricalByPeriod(dateRange.startDate, dateRange.endDate, period),
   });
 
-  const dateFormat = period === 'yearly' ? 'yyyy' : period === 'monthly' ? 'yyyy-MM' : 'MM/dd';
+  const getDateFormat = () => {
+    switch (period) {
+      case 'hourly': return 'HH:mm';
+      case 'yearly': return 'yyyy';
+      case 'monthly': return 'yyyy-MM';
+      default: return 'MM/dd';
+    }
+  };
   const chartData = (historicalData?.data || []).map((stat: DailyStatistics) => ({
-    date: period === 'daily' ? format(new Date(stat.date), dateFormat) : stat.date,
+    date: period === 'hourly'
+      ? stat.date.split(' ')[1] || stat.date // "2024-02-09 14:00" -> "14:00"
+      : period === 'daily'
+        ? format(new Date(stat.date), getDateFormat())
+        : stat.date,
     visitors: stat.visitorCount,
     pageViews: stat.pageViewCount,
     activeUsers: stat.activeUserCount,

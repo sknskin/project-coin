@@ -327,6 +327,7 @@
       "chat": "채팅"
     },
     "period": {
+      "hourly": "시간별",
       "daily": "일별",
       "monthly": "월별",
       "yearly": "연별"

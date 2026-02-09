@@ -7,6 +7,7 @@ interface PeriodSelectorProps {
 }
 
 const periods: { value: StatsPeriod; labelKey: string }[] = [
+  { value: 'hourly', labelKey: 'stats.period.hourly' },
   { value: 'daily', labelKey: 'stats.period.daily' },
   { value: 'monthly', labelKey: 'stats.period.monthly' },
   { value: 'yearly', labelKey: 'stats.period.yearly' },

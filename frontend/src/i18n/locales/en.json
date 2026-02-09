@@ -327,6 +327,7 @@
       "chat": "Chat"
     },
     "period": {
+      "hourly": "Hourly",
       "daily": "Daily",
       "monthly": "Monthly",
       "yearly": "Yearly"
