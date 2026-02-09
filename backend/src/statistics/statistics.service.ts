@@ -131,41 +131,41 @@ export class StatisticsService {
    * 시간별 통계 조회 (실시간 데이터 기반)
    */
   private async getHourlyStats(startDate: Date, endDate: Date) {
-    // 시간별로 그룹화된 방문자 통계
+    // 시간별로 그룹화된 방문자 통계 (UTC 사용)
     const visitorStats: any[] = await this.prisma.$queryRawUnsafe(
       `SELECT
-        to_char(started_at, 'YYYY-MM-DD HH24:00') as date,
+        to_char(started_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') as date,
         COUNT(*)::int as "visitorCount",
         COALESCE(SUM(page_views), 0)::int as "pageViewCount"
       FROM visitor_sessions
       WHERE started_at >= $1 AND started_at <= $2
-      GROUP BY to_char(started_at, 'YYYY-MM-DD HH24:00')
+      GROUP BY to_char(started_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00')
       ORDER BY 1 ASC`,
       startDate,
       endDate,
     );
 
-    // 시간별 로그인 통계
+    // 시간별 로그인 통계 (UTC 사용)
     const loginStats: any[] = await this.prisma.$queryRawUnsafe(
       `SELECT
-        to_char(login_at, 'YYYY-MM-DD HH24:00') as date,
+        to_char(login_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') as date,
         COUNT(*)::int as "loginCount"
       FROM login_histories
       WHERE login_at >= $1 AND login_at <= $2 AND is_success = true
-      GROUP BY to_char(login_at, 'YYYY-MM-DD HH24:00')
+      GROUP BY to_char(login_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00')
       ORDER BY 1 ASC`,
       startDate,
       endDate,
     );
 
-    // 시간별 가입 통계
+    // 시간별 가입 통계 (UTC 사용)
     const registerStats: any[] = await this.prisma.$queryRawUnsafe(
       `SELECT
-        to_char(created_at, 'YYYY-MM-DD HH24:00') as date,
+        to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') as date,
         COUNT(*)::int as "registerCount"
       FROM users
       WHERE created_at >= $1 AND created_at <= $2
-      GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00')
+      GROUP BY to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00')
       ORDER BY 1 ASC`,
       startDate,
       endDate,
@@ -174,13 +174,13 @@ export class StatisticsService {
     // 결과 병합
     const hourMap = new Map<string, any>();
 
-    // 시작~종료 사이의 모든 시간대 초기화
+    // 시작~종료 사이의 모든 시간대 초기화 (UTC 사용)
     const current = new Date(startDate);
-    current.setMinutes(0, 0, 0);
+    current.setUTCMinutes(0, 0, 0);
     const maxIterations = 168; // 최대 7일 (168시간)
     let iterations = 0;
     while (current <= endDate && iterations < maxIterations) {
-      const displayKey = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')} ${String(current.getHours()).padStart(2, '0')}:00`;
+      const displayKey = `${current.getUTCFullYear()}-${String(current.getUTCMonth() + 1).padStart(2, '0')}-${String(current.getUTCDate()).padStart(2, '0')} ${String(current.getUTCHours()).padStart(2, '0')}:00`;
       hourMap.set(displayKey, {
         date: displayKey,
         visitorCount: 0,
@@ -196,7 +196,7 @@ export class StatisticsService {
         notificationCount: 0,
         notificationReadCount: 0,
       });
-      current.setHours(current.getHours() + 1);
+      current.setUTCHours(current.getUTCHours() + 1);
       iterations++;
     }
 
@@ -263,21 +263,21 @@ export class StatisticsService {
   private async getHourlyAnnouncementStats(startDate: Date, endDate: Date) {
     const [announcements, comments, likes] = await Promise.all([
       this.prisma.$queryRawUnsafe<any[]>(
-        `SELECT to_char(created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
+        `SELECT to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
          FROM announcements WHERE created_at >= $1 AND created_at <= $2
-         GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+         GROUP BY to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') ORDER BY 1`,
         startDate, endDate,
       ),
       this.prisma.$queryRawUnsafe<any[]>(
-        `SELECT to_char(created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
+        `SELECT to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
          FROM announcement_comments WHERE created_at >= $1 AND created_at <= $2
-         GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+         GROUP BY to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') ORDER BY 1`,
         startDate, endDate,
       ),
       this.prisma.$queryRawUnsafe<any[]>(
-        `SELECT to_char(created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
+        `SELECT to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
          FROM announcement_likes WHERE created_at >= $1 AND created_at <= $2
-         GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+         GROUP BY to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') ORDER BY 1`,
         startDate, endDate,
       ),
     ]);
@@ -298,13 +298,14 @@ export class StatisticsService {
   private initHourMap(startDate: Date, endDate: Date): Map<string, any> {
     const hourMap = new Map<string, any>();
     const current = new Date(startDate);
-    current.setMinutes(0, 0, 0);
+    current.setUTCMinutes(0, 0, 0);
     const maxIterations = 168; // 최대 7일 (168시간)
     let iterations = 0;
     while (current <= endDate && iterations < maxIterations) {
-      const displayKey = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')} ${String(current.getHours()).padStart(2, '0')}:00`;
+      // UTC 시간 사용 (PostgreSQL to_char와 일치)
+      const displayKey = `${current.getUTCFullYear()}-${String(current.getUTCMonth() + 1).padStart(2, '0')}-${String(current.getUTCDate()).padStart(2, '0')} ${String(current.getUTCHours()).padStart(2, '0')}:00`;
       hourMap.set(displayKey, { date: displayKey });
-      current.setHours(current.getHours() + 1);
+      current.setUTCHours(current.getUTCHours() + 1);
       iterations++;
     }
     return hourMap;
@@ -361,15 +362,15 @@ export class StatisticsService {
   private async getHourlyChatStats(startDate: Date, endDate: Date) {
     const [messages, conversations] = await Promise.all([
       this.prisma.$queryRawUnsafe<any[]>(
-        `SELECT to_char(created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
+        `SELECT to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
          FROM messages WHERE created_at >= $1 AND created_at <= $2 AND is_deleted = false
-         GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+         GROUP BY to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') ORDER BY 1`,
         startDate, endDate,
       ),
       this.prisma.$queryRawUnsafe<any[]>(
-        `SELECT to_char(m.created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(DISTINCT m.conversation_id)::int as count
+        `SELECT to_char(m.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') as date, COUNT(DISTINCT m.conversation_id)::int as count
          FROM messages m WHERE m.created_at >= $1 AND m.created_at <= $2
-         GROUP BY to_char(m.created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+         GROUP BY to_char(m.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') ORDER BY 1`,
         startDate, endDate,
       ),
     ]);
@@ -476,15 +477,15 @@ export class StatisticsService {
   private async getHourlyNotificationStats(startDate: Date, endDate: Date) {
     const [sent, read] = await Promise.all([
       this.prisma.$queryRawUnsafe<any[]>(
-        `SELECT to_char(created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
+        `SELECT to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
          FROM notifications WHERE created_at >= $1 AND created_at <= $2
-         GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+         GROUP BY to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') ORDER BY 1`,
         startDate, endDate,
       ),
       this.prisma.$queryRawUnsafe<any[]>(
-        `SELECT to_char(created_at, 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
+        `SELECT to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') as date, COUNT(*)::int as count
          FROM notifications WHERE created_at >= $1 AND created_at <= $2 AND is_read = true
-         GROUP BY to_char(created_at, 'YYYY-MM-DD HH24:00') ORDER BY 1`,
+         GROUP BY to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:00') ORDER BY 1`,
         startDate, endDate,
       ),
     ]);
