@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/authStore';
@@ -22,6 +22,8 @@ export default function Header() {
   const { formattedTime, isExpiringSoon } = useSessionTimer();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const hamburgerButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     fetchMenus();
@@ -36,6 +38,26 @@ export default function Header() {
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, [isMobileMenuOpen]);
+
+  // 모바일 메뉴 바깥 클릭 시 닫기
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(target) &&
+        hamburgerButtonRef.current &&
+        !hamburgerButtonRef.current.contains(target)
+      ) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobileMenuOpen]);
 
   const handleLogoutClick = () => {
@@ -77,6 +99,7 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             {/* 햄버거 메뉴 버튼 (1024px 미만에서 표시) */}
             <button
+              ref={hamburgerButtonRef}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
               aria-label="Toggle menu"
@@ -179,7 +202,10 @@ export default function Header() {
 
       {/* 모바일 메뉴 (1024px 미만에서 표시) */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div
+          ref={mobileMenuRef}
+          className="lg:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+        >
           <div className="container mx-auto px-4 py-3">
             {/* 테마/언어 토글 (모바일) */}
             <div className="flex items-center space-x-2 pb-3 border-b border-gray-200 dark:border-gray-700">
