@@ -8,22 +8,19 @@ export function useScrollLock(isLocked: boolean) {
   useEffect(() => {
     if (!isLocked) return;
 
-    // 현재 스크롤 위치 저장
-    const scrollY = window.scrollY;
+    // 스크롤바 너비 계산
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
 
-    // body를 fixed로 만들어 스크롤 방지
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
+    const htmlElement = document.documentElement;
+    htmlElement.style.overflow = 'hidden';
+    htmlElement.style.paddingRight = `${scrollbarWidth}px`;
+    // CSS 변수로 설정하여 fixed 요소들도 사용 가능하게 함
+    htmlElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
 
     return () => {
-      // body 스타일 복원
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-
-      // 스크롤 위치 복원
-      window.scrollTo(0, scrollY);
+      htmlElement.style.overflow = '';
+      htmlElement.style.paddingRight = '';
+      htmlElement.style.setProperty('--scrollbar-width', '0px');
     };
   }, [isLocked]);
 }

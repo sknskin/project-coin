@@ -32,9 +32,16 @@ body {
 
 /* Prevent horizontal scroll and stabilize scrollbar */
 html {
+  --scrollbar-width: 0px; /* 모달 열릴 때 JS에서 설정됨 */
   overflow-x: hidden;
   overflow-y: scroll; /* 항상 스크롤바 공간 확보 */
   scrollbar-gutter: stable; /* 스크롤바 공간 안정화 (지원 브라우저) */
+}
+
+/* fixed 요소들에 스크롤바 너비만큼 padding 적용 */
+header.fixed,
+.fixed[class*="top-0"] {
+  padding-right: var(--scrollbar-width, 0px);
 }
 
 body {
