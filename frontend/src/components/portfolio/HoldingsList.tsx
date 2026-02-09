@@ -10,7 +10,12 @@ interface HoldingsListProps {
 
 export default function HoldingsList({ holdings }: HoldingsListProps) {
   const { t } = useTranslation();
-  const [selectedHolding, setSelectedHolding] = useState<Holding | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState<string | null>(null);
+
+  // 선택된 currency에 해당하는 최신 holding 데이터 찾기
+  const selectedHolding = selectedCurrency
+    ? holdings.find((h) => h.currency === selectedCurrency) || null
+    : null;
 
   return (
     <>
@@ -55,7 +60,7 @@ export default function HoldingsList({ holdings }: HoldingsListProps) {
                 return (
                   <tr
                     key={holding.currency}
-                    onClick={() => setSelectedHolding(holding)}
+                    onClick={() => setSelectedCurrency(holding.currency)}
                     className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                   >
                     <td className="px-4 py-3">
@@ -97,7 +102,7 @@ export default function HoldingsList({ holdings }: HoldingsListProps) {
       {selectedHolding && (
         <HoldingDetailModal
           holding={selectedHolding}
-          onClose={() => setSelectedHolding(null)}
+          onClose={() => setSelectedCurrency(null)}
         />
       )}
     </>

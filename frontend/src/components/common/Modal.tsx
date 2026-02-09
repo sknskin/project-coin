@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 interface ModalProps {
   isOpen: boolean;
@@ -78,8 +79,8 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[70] flex items-center justify-center">
       <div
         className="absolute inset-0 bg-black bg-opacity-50"
         onClick={onClose}
@@ -113,6 +114,7 @@ export default function Modal({ isOpen, onClose, title, children, autoFocus = tr
         )}
         <div className="p-6">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

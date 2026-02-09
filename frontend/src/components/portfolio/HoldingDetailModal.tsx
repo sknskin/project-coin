@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -68,9 +69,9 @@ export default function HoldingDetailModal({ holding, onClose }: HoldingDetailMo
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4"
       onClick={onClose}
     >
       <div
@@ -275,6 +276,7 @@ export default function HoldingDetailModal({ holding, onClose }: HoldingDetailMo
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
