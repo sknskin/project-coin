@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { marketApi } from '../../api/market.api';
 import { formatPrice, formatPercent } from '../../utils/format';
 import { useChartColors } from '../statistics/useChartColors';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import type { Holding } from '../../types/portfolio.types';
 
 interface HoldingDetailModalProps {
@@ -54,6 +55,9 @@ export default function HoldingDetailModal({ holding, onClose }: HoldingDetailMo
           low: candle.low_price,
         }))
     : [];
+
+  // 배경 스크롤 방지
+  useScrollLock(true);
 
   // Close on escape key
   useEffect(() => {

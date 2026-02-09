@@ -30,7 +30,13 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Prevent horizontal scroll */
-html, body {
+/* Prevent horizontal scroll and stabilize scrollbar */
+html {
+  overflow-x: hidden;
+  overflow-y: scroll; /* 항상 스크롤바 공간 확보 */
+  scrollbar-gutter: stable; /* 스크롤바 공간 안정화 (지원 브라우저) */
+}
+
+body {
   overflow-x: hidden;
 }

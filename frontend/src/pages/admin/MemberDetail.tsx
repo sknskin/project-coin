@@ -9,6 +9,7 @@ import {
 import { adminApi } from '../../api/admin.api';
 import { useAuthStore } from '../../store/authStore';
 import { useChartColors } from '../../components/statistics/useChartColors';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import type { UserRole, UserStatus, LoginHistory } from '../../types/admin.types';
 
@@ -26,6 +27,9 @@ export default function MemberDetail() {
   const [selectedRole, setSelectedRole] = useState<UserRole>('USER');
   const [rejectReason, setRejectReason] = useState('');
   const chartColors = useChartColors();
+
+  // 인라인 모달 열릴 때 배경 스크롤 방지
+  useScrollLock(showApprovalModal || showRejectModal);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-user', id],
