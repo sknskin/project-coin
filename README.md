@@ -38,8 +38,8 @@
 
 1. **저장소 클론**
 ```bash
-git clone https://github.com/sknskin/project_coin.git
-cd project_coin
+git clone https://github.com/sknskin/project-coin.git
+cd project-coin
 ```
 
 2. **환경 변수 설정**
@@ -77,7 +77,7 @@ http://localhost:5173
 ## 프로젝트 구조
 
 ```
-project_coin/
+project-coin/
 ├── docker-compose.yml
 ├── .env
 ├── backend/
